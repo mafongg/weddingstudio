@@ -252,6 +252,7 @@ tbody tr:hover{background:var(--surface-2)}
 }
 @media (prefers-reduced-motion:reduce){*{transition-duration:.001ms!important;animation-duration:.001ms!important}}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 <div id="root"></div>
@@ -272,25 +273,43 @@ tbody tr:hover{background:var(--surface-2)}
    1. LAPISAN PENYIMPANAN
    Ganti bagian ini saja saat pindah ke Supabase.
    ============================================================ */
+const SUPABASE_URL = 'https://wctihclgcakqcjiagnzl.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjdGloY2xnY2FrcWNqaWFnbnpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwODc3ODksImV4cCI6MjEwNTY2Mzc4OX0.dwheQjxOoDbzIzlbCQ3wXY0qb7f5OQKkwBpcw9m5Gos';
+
 const Store = (() => {
   const MEM = {};
   let mode = 'memory';
+  let sb = null;
 
-  if (typeof window !== 'undefined' && window.storage && window.storage.get) {
-    mode = 'bridge';
-  } else {
+  if (typeof window !== 'undefined' && window.supabase && window.supabase.createClient) {
     try {
-      const k = '__probe__';
-      window.localStorage.setItem(k, '1');
-      window.localStorage.removeItem(k);
-      mode = 'local';
-    } catch (e) { mode = 'memory'; }
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      mode = 'supabase';
+    } catch (e) { sb = null; }
+  }
+
+  if (!sb) {
+    if (typeof window !== 'undefined' && window.storage && window.storage.get) {
+      mode = 'bridge';
+    } else {
+      try {
+        const k = '__probe__';
+        window.localStorage.setItem(k, '1');
+        window.localStorage.removeItem(k);
+        mode = 'local';
+      } catch (e) { mode = 'memory'; }
+    }
   }
 
   return {
     mode,
     async get(key) {
       try {
+        if (mode === 'supabase') {
+          const { data, error } = await sb.from('wedding_kv').select('value').eq('key', key).maybeSingle();
+          if (error) throw error;
+          return data ? data.value : null;
+        }
         if (mode === 'bridge') {
           const r = await window.storage.get(key);
           return r && r.value ? JSON.parse(r.value) : null;
@@ -304,20 +323,18 @@ const Store = (() => {
     },
     async set(key, value) {
       try {
+        if (mode === 'supabase') {
+          const { error } = await sb.from('wedding_kv').upsert({ key, value, updated_at: new Date().toISOString() });
+          if (error) throw error;
+          return true;
+        }
         if (mode === 'bridge') { await window.storage.set(key, JSON.stringify(value)); return true; }
         if (mode === 'local')  { window.localStorage.setItem(key, JSON.stringify(value)); return true; }
         MEM[key] = value; return true;
       } catch (e) { MEM[key] = value; return false; }
     }
   };
-  /* ---- NANTI: ganti isi get/set di atas dengan Supabase ----
-     const sb = supabase.createClient(URL, ANON_KEY);
-     async get(key){ const {data} = await sb.from('wedding_kv')
-                        .select('value').eq('key', key).maybeSingle();
-                     return data ? data.value : null; }
-     async set(key,value){ await sb.from('wedding_kv')
-                        .upsert({ key, value }); return true; }
-     Tabel: wedding_kv (key text primary key, value jsonb,
+  /* Tabel: wedding_kv (key text primary key, value jsonb,
                         updated_at timestamptz default now())
   ------------------------------------------------------------ */
 })();
@@ -2016,7 +2033,7 @@ async function onScan(text){
 
 function viewSettings(){
   return '<div class="head"><div><h1>Pengaturan</h1>' +
-    '<p>Cadangan data dan koneksi. Ekspor rutin selama Supabase belum terpasang.</p></div></div>' +
+    '<p>Cadangan data dan koneksi. Data kini tersimpan di Supabase (Store.mode: <b>' + Store.mode + '</b>), otomatis nyatu lintas perangkat.</p></div></div>' +
 
     '<div class="card"><div class="card__t">Umum</div>' +
       fld('Nama proyek','meta.title') +
@@ -2034,12 +2051,9 @@ function viewSettings(){
       '<b>Tindakan ini tidak bisa dibatalkan</b> — ekspor dulu kalau ada yang mau disimpan.</p>' +
       '<button class="b b--bad" data-reset>' + icon('trash') + 'Reset ke Data Baru</button></div>' +
 
-    '<div class="card"><div class="card__t">Menuju Supabase</div>' +
-      '<p style="margin:0 0 12px;color:var(--ink-2)">Saat siap, buka <b>index.html</b> dan cari blok bertanda ' +
-      '<b>LAPISAN PENYIMPANAN</b> di bagian atas script. Ganti isi <code>get</code> dan <code>set</code> ' +
-      'dengan pemanggilan Supabase — tidak ada bagian lain yang perlu disentuh.</p>' +
-      '<p style="margin:0;color:var(--ink-2)">Tabel yang dibutuhkan hanya satu:</p>' +
-      '<pre style="margin:10px 0 0;padding:13px;background:var(--surface-2);border-radius:8px;overflow-x:auto;font-size:12px;line-height:1.6">create table wedding_kv (\n  key text primary key,\n  value jsonb,\n  updated_at timestamptz default now()\n);</pre></div>';
+    '<div class="card"><div class="card__t">Status Supabase</div>' +
+      '<p style="margin:0;color:var(--ink-2)">Terhubung ke project Supabase <b>wedding-studio</b>, tabel <code>wedding_kv</code>. ' +
+      'Semua RSVP, tamu, dan ucapan dari perangkat mana pun (HP tamu, laptop Anda) otomatis masuk ke tempat yang sama.</p></div>';
 }
 
 /* ============================================================
