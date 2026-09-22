@@ -1,0 +1,2598 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wedding Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Jost:wght@300;400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================
+   ADMIN SHELL
+   ========================================================== */
+:root{
+  --bg:#F6F5F2; --surface:#FFFFFF; --surface-2:#F0EEE9;
+  --ink:#222A24; --ink-2:#5C6459; --ink-3:#8C9288;
+  --brand:#2C4034; --brand-2:#3C5545; --gold:#A98A4E;
+  --line:#E2DED5; --line-2:#EFECE4;
+  --ok:#2F6B4F; --warn:#96702A; --bad:#9E4433;
+  --r:10px;
+  --f:'Jost',system-ui,sans-serif;
+  --fs:'Cormorant Garamond',Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px}
+h1,h2,h3,h4{margin:0;font-weight:500;line-height:1.3}
+
+.app{display:grid;grid-template-columns:236px 1fr;min-height:100dvh}
+
+/* Sidebar */
+.side{background:var(--brand);color:#DCE5DE;padding:22px 14px;position:sticky;top:0;height:100dvh;overflow-y:auto}
+.brand{font-family:var(--fs);font-size:22px;font-weight:400;color:#fff;letter-spacing:.02em;padding:0 10px 4px}
+.brand small{display:block;font-family:var(--f);font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#93A899;margin-top:4px}
+.nav{margin-top:26px;display:grid;gap:2px}
+.nav button{display:flex;align-items:center;gap:11px;width:100%;min-height:42px;padding:0 12px;border:0;border-radius:8px;background:transparent;color:#C3D0C6;font:inherit;font-size:13px;text-align:left;cursor:pointer;transition:background .18s,color .18s}
+.nav button:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav button.on{background:#fff;color:var(--brand);font-weight:500}
+.nav svg{width:17px;height:17px;flex:none}
+.side__foot{margin-top:24px;padding:12px;border-top:1px solid rgba(255,255,255,.14);font-size:11px;color:#8FA495;line-height:1.5}
+
+/* Main */
+.main{padding:26px 30px 90px;max-width:1080px}
+.head{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;justify-content:space-between;margin-bottom:22px}
+.head h1{font-family:var(--fs);font-size:30px;font-weight:400}
+.head p{margin:5px 0 0;color:var(--ink-2);max-width:62ch}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.card__t{font-size:12px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
+
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+
+/* Stats */
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.stat__n{font-family:var(--fs);font-size:34px;font-weight:400;line-height:1}
+.stat__l{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin-top:7px}
+.stat--ok .stat__n{color:var(--ok)} .stat--warn .stat__n{color:var(--warn)} .stat--bad .stat__n{color:var(--bad)}
+
+/* Statistics panel (Connectied-style dark green) */
+.statpanel{background:var(--brand);color:#DCE5DE;border-radius:var(--r);padding:24px}
+.statpanel h3{font-family:var(--fs);font-size:22px;font-weight:400;color:#fff;margin:0 0 18px}
+.srow{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:9px 0}
+.srow span{font-size:13px;color:#B7C7BC;line-height:1.4}
+.srow b{font-size:20px;font-weight:500;color:#fff;white-space:nowrap}
+.srow b.big{font-size:30px;font-family:var(--fs);font-weight:400}
+.srow--big span{font-size:14px}
+.srule{height:1px;background:rgba(255,255,255,.16);margin:10px 0}
+.card .srow span{color:var(--ink-2)}
+.card .srow b{color:var(--ink)}
+
+/* Quota bar */
+.qbar{display:flex;height:30px;border-radius:5px;overflow:hidden;background:var(--surface-2);margin-bottom:16px;font-size:11px;font-weight:600;color:#fff}
+.qbar span{display:flex;align-items:center;justify-content:center;white-space:nowrap}
+.qbar__used{background:var(--ok)}
+.qbar__wait{background:var(--warn)}
+.qbar__free{background:#C9CCC7;color:var(--ink-2)}
+.qleg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+.qleg b{display:block;font-family:var(--fs);font-size:24px;font-weight:400}
+.qleg span{font-size:11px;color:var(--ink-3);line-height:1.4;display:block;margin-top:2px}
+
+/* Segmented filters */
+.segwrap{display:flex;flex-wrap:wrap;gap:16px}
+.segrow{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg{border:0;background:#fff;color:var(--ink-2);font:inherit;font-size:12px;padding:8px 16px;cursor:pointer;border-right:1px solid var(--line)}
+.segrow .seg:last-child{border-right:0}
+.seg.on{background:var(--brand);color:#fff}
+
+/* Wish cards */
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.wcard{position:relative;background:linear-gradient(160deg,#9C7A4E,#7A5C38);color:#F6EEE2;border-radius:12px;padding:20px 18px 16px;display:flex;flex-direction:column;min-height:180px}
+.wcard__x{position:absolute;top:8px;right:8px;width:26px;height:26px;border:0;border-radius:50%;background:#B23B2E;color:#fff;font-size:16px;line-height:1;cursor:pointer}
+.wcard__q{font-family:var(--fs);font-size:40px;line-height:.6;opacity:.5}
+.wcard__m{font-size:14px;line-height:1.5;margin:6px 0 14px;flex:1}
+.wcard__f{border-top:1px solid rgba(255,255,255,.25);padding-top:12px}
+.wcard__n{display:block;font-weight:500;font-size:14px;margin-bottom:8px}
+.wcard__b{display:flex;gap:6px;flex-wrap:wrap}
+.wcard__b .tag{background:rgba(255,255,255,.9)}
+.wcard__act{display:flex;gap:6px;margin-top:12px}
+.wcard__act .b{flex:1;background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.4);color:#fff}
+.wcard__act .b--line{background:transparent}
+
+/* Guest list toolbar + pagination */
+.glbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.glbar input[type=search]{flex:1;min-width:200px}
+.glbar select{max-width:180px}
+.glpage{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;flex-wrap:wrap;color:var(--ink-2);font-size:13px}
+.glpage .b[disabled]{opacity:.4;cursor:not-allowed}
+
+/* WA status badges */
+.tag.wa--read{background:#0E7C86;color:#fff}
+.tag.wa--open{background:#1D6FB8;color:#fff}
+.tag.wa--deliv{background:#7FD1CE;color:#123}
+.tag.wa--sent{background:#B9E3E0;color:#123}
+.tag.wa--fail{background:#F3D2CC;color:#8C2A1B}
+
+/* Guest detail modal: tabs, sections, logs */
+.dtl__h{align-items:center}
+.dtl__tabs{display:flex;gap:4px;margin-left:16px}
+.dtl__tab{border:0;background:transparent;color:var(--ink-3);font:inherit;font-size:13px;font-weight:500;padding:6px 14px;border-radius:7px 7px 0 0;cursor:pointer}
+.dtl__tab.on{background:#fff;color:var(--brand)}
+.dtl__sec{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+.logs{max-height:340px;overflow-y:auto}
+.logrow{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line-2);font-size:13px}
+.logrow:last-child{border-bottom:0}
+.logrow__t{color:var(--ink-3);white-space:nowrap;font-variant-numeric:tabular-nums}
+.logrow__a{color:var(--ink);text-align:right}
+
+/* Form */
+.f{margin-bottom:14px}
+.f label{display:block;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);margin-bottom:6px}
+.f .hint{font-size:12px;color:var(--ink-3);margin:5px 0 0;letter-spacing:0;text-transform:none;font-weight:400}
+input,select,textarea{width:100%;min-height:42px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font:inherit;font-size:14px;transition:border-color .18s,box-shadow .18s}
+textarea{min-height:88px;resize:vertical;line-height:1.6}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(44,64,52,.09)}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%235C6459' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+
+/* Buttons */
+.b{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 18px;border:1px solid var(--brand);border-radius:8px;background:var(--brand);color:#fff;font:inherit;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;transition:background .18s,transform .18s}
+.b:hover{background:var(--brand-2);transform:translateY(-1px)}
+.b--line{background:#fff;color:var(--ink);border-color:var(--line)}
+.b--line:hover{background:var(--surface-2)}
+.b--bad{background:#fff;color:var(--bad);border-color:#E3C6BF}
+.b--bad:hover{background:#FCF2F0}
+.b--sm{min-height:34px;padding:0 12px;font-size:12px}
+.b svg{width:15px;height:15px;flex:none}
+.row{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+
+/* Table */
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--surface-2);text-align:left;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);padding:11px 13px;white-space:nowrap;border-bottom:1px solid var(--line)}
+td{padding:11px 13px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr{cursor:pointer;transition:background .15s}
+tbody tr:hover{background:var(--surface-2)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.mono{font-variant-numeric:tabular-nums;letter-spacing:.06em}
+
+.tag{display:inline-block;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.tag--ok{background:#E6F0E9;color:var(--ok)}
+.tag--warn{background:#F6EEDD;color:var(--warn)}
+.tag--bad{background:#F8E9E5;color:var(--bad)}
+.tag--idle{background:var(--surface-2);color:var(--ink-3)}
+
+.empty{padding:44px 20px;text-align:center;color:var(--ink-3)}
+.empty h3{font-family:var(--fs);font-size:22px;font-weight:400;color:var(--ink-2);margin-bottom:6px}
+
+/* Repeater rows */
+.item{border:1px solid var(--line);border-radius:9px;padding:15px;margin-bottom:11px;background:var(--surface-2)}
+.item__h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.item__h strong{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2);font-weight:600}
+
+/* Theme picker */
+.themes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.theme{border:1px solid var(--line);border-radius:10px;padding:0;overflow:hidden;background:#fff;cursor:pointer;text-align:left;transition:border-color .2s,transform .2s}
+.theme:hover{transform:translateY(-2px)}
+.theme.on{border-color:var(--brand);box-shadow:0 0 0 3px rgba(44,64,52,.1)}
+.theme__sw{height:82px;display:grid;place-items:center;font-family:'Pinyon Script',cursive;font-size:25px}
+.theme__m{padding:11px 13px}
+.theme__m b{display:block;font-size:13px;font-weight:500}
+.theme__m span{font-size:11px;color:var(--ink-3)}
+
+/* QR & scanner */
+.reader{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface-2);min-height:4px}
+.reader:empty{min-height:0;border:0}
+.reader video{width:100%!important;display:block}
+.qrwrap{display:flex;gap:14px;align-items:flex-start}
+.qrcard{padding:11px;background:#fff;border:1px solid var(--line);border-radius:9px;line-height:0;flex:none}
+.qrcard img,.qrcard canvas{display:block}
+
+/* Photo picker */
+.ph{display:flex;gap:14px;align-items:flex-start}
+.ph__t{width:104px;height:104px;object-fit:cover;border-radius:9px;border:1px solid var(--line);flex:none;background:var(--surface-2)}
+.ph__e{display:grid;place-items:center;font-size:11px;color:var(--ink-3);text-align:center}
+.ph__a{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-top:3px}
+
+/* WhatsApp preview mock */
+.wa{margin-top:18px}
+.wa__b{max-width:330px}
+.wa__c{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.wa__c img{width:100%;aspect-ratio:1200/630;object-fit:cover}
+.wa__ph{aspect-ratio:1200/630;display:grid;place-items:center;background:var(--surface-2);color:var(--ink-3);font-size:12px}
+.wa__x{padding:10px 12px}
+.wa__x b{display:block;font-size:13px;font-weight:500;line-height:1.35}
+.wa__x span{display:block;font-size:12px;color:var(--ink-2);margin-top:3px;line-height:1.4}
+.wa__x i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);margin-top:5px}
+.wa p{margin:8px 0 0;font-size:12px;color:var(--ink-3)}
+
+/* Preview */
+.preview{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:#fff;height:640px}
+.preview iframe{width:100%;height:100%;border:0;display:block}
+
+/* Modal */
+.modal{position:fixed;inset:0;z-index:300;display:none;place-items:center;padding:18px;background:rgba(34,42,36,.5)}
+.modal.on{display:grid}
+.modal__box{background:#fff;border-radius:14px;width:100%;max-width:520px;max-height:88dvh;overflow-y:auto;padding:24px}
+.modal__h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
+.modal__h h2{font-family:var(--fs);font-size:24px;font-weight:400}
+.x{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;flex:none}
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,14px);z-index:400;padding:11px 20px;border-radius:9px;background:var(--ink);color:#fff;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* Gate */
+.gate{min-height:100dvh;display:grid;place-items:center;padding:22px;background:var(--brand)}
+.gate__box{background:#fff;border-radius:14px;padding:34px;width:100%;max-width:360px;text-align:center}
+.gate__box h1{font-family:var(--fs);font-size:30px;font-weight:400;margin-bottom:5px}
+.gate__box p{color:var(--ink-2);margin:0 0 22px;font-size:13px}
+
+.banner{display:flex;gap:11px;align-items:flex-start;padding:13px 15px;border:1px solid #E4DBC4;border-radius:9px;background:#FBF6EA;margin-bottom:18px;font-size:13px;color:#6A5A34;line-height:1.55}
+.banner svg{width:17px;height:17px;flex:none;margin-top:2px;color:var(--gold)}
+
+.qr{display:grid;place-items:center;padding:14px;background:#fff;border:1px solid var(--line);border-radius:9px}
+.qr canvas,.qr img{display:block}
+
+@media(max-width:900px){
+  .g2,.g3,.g4,.themes{grid-template-columns:1fr}
+  .g4{grid-template-columns:1fr 1fr}
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;z-index:60;padding:6px;display:flex;gap:2px;overflow-x:auto}
+  .brand,.side__foot{display:none}
+  .nav{margin:0;display:flex;gap:2px}
+  .nav button{flex-direction:column;gap:3px;min-width:66px;min-height:52px;padding:6px 4px;font-size:9.5px;letter-spacing:.04em;text-align:center;justify-content:center}
+  .main{padding:18px 16px 96px}
+  .head h1{font-size:24px}
+}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.001ms!important;animation-duration:.001ms!important}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="modal" id="modal"><div class="modal__box" id="modalBox"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   WEDDING STUDIO
+   Satu file, dua mode:
+     index.html          -> panel admin (dikunci PIN)
+     index.html?g=KODE   -> undangan untuk tamu tersebut
+   ============================================================ */
+(() => {
+'use strict';
+
+/* ============================================================
+   1. LAPISAN PENYIMPANAN
+   Ganti bagian ini saja saat pindah ke Supabase.
+   ============================================================ */
+const Store = (() => {
+  const MEM = {};
+  let mode = 'memory';
+
+  if (typeof window !== 'undefined' && window.storage && window.storage.get) {
+    mode = 'bridge';
+  } else {
+    try {
+      const k = '__probe__';
+      window.localStorage.setItem(k, '1');
+      window.localStorage.removeItem(k);
+      mode = 'local';
+    } catch (e) { mode = 'memory'; }
+  }
+
+  return {
+    mode,
+    async get(key) {
+      try {
+        if (mode === 'bridge') {
+          const r = await window.storage.get(key);
+          return r && r.value ? JSON.parse(r.value) : null;
+        }
+        if (mode === 'local') {
+          const v = window.localStorage.getItem(key);
+          return v ? JSON.parse(v) : null;
+        }
+        return MEM[key] !== undefined ? MEM[key] : null;
+      } catch (e) { return null; }
+    },
+    async set(key, value) {
+      try {
+        if (mode === 'bridge') { await window.storage.set(key, JSON.stringify(value)); return true; }
+        if (mode === 'local')  { window.localStorage.setItem(key, JSON.stringify(value)); return true; }
+        MEM[key] = value; return true;
+      } catch (e) { MEM[key] = value; return false; }
+    }
+  };
+  /* ---- NANTI: ganti isi get/set di atas dengan Supabase ----
+     const sb = supabase.createClient(URL, ANON_KEY);
+     async get(key){ const {data} = await sb.from('wedding_kv')
+                        .select('value').eq('key', key).maybeSingle();
+                     return data ? data.value : null; }
+     async set(key,value){ await sb.from('wedding_kv')
+                        .upsert({ key, value }); return true; }
+     Tabel: wedding_kv (key text primary key, value jsonb,
+                        updated_at timestamptz default now())
+  ------------------------------------------------------------ */
+})();
+
+const K = { data:'wedding:data', guests:'wedding:guests', wishes:'wedding:wishes', opens:'wedding:opens' };
+
+/* ============================================================
+   2. DATA AWAL
+   ============================================================ */
+const seed = () => ({
+  meta: { theme:'ivory', cover:'fade', nav:'none', gallery:'grid', card:'plain', rsvp:'form', lang:'en', pin:'1234', title:'Kenneth & Kimberly', customTheme:null },
+  og: { image:'', title:'', desc:'' },
+  weddingISO: '2026-11-14T09:00:00+07:00',
+  rsvpDeadline: '2026-11-01',
+  opening: {
+    greeting: 'To God be the glory',
+    text: 'With hearts full of gratitude for the grace of our Lord, we invite you to witness the covenant of marriage between'
+  },
+  quote: {
+    text: 'Love is patient, love is kind. It always protects, always trusts, always hopes, always perseveres.',
+    source: '1 Corinthians 13 : 4-7'
+  },
+  hosts: ['The Adrianto Family', 'The Widodo Family'],
+  rundown: [
+    { time:'08.30', item:'Guests seated' },
+    { time:'09.00', item:'Processional' },
+    { time:'09.30', item:'Exchange of vows' },
+    { time:'10.30', item:'Blessing and recessional' }
+  ],
+  groom: { short:'Kenneth', full:'Kenneth Adrianto, S.T.', order:'First son of', father:'Mr. Hendra Adrianto', mother:'Mrs. Maria Susanti', ig:'kennethadrianto', photo:'' },
+  bride: { short:'Kimberly', full:'Kimberly Kirana, S.Ds.', order:'Second daughter of', father:'Mr. Yosef Widodo', mother:'Mrs. Anastasia Rini', ig:'kimberlykirana', photo:'' },
+  events: [
+    { kind:'Holy Matrimony', date:'Saturday, 14 November 2026', time:'09.00 - 11.00 WIB', venue:'Jakarta Cathedral', address:'Jl. Katedral No. 7, Central Jakarta', maps:'https://maps.google.com/?q=Jakarta+Cathedral', capacity:0 },
+    { kind:'Reception', date:'Saturday, 14 November 2026', time:'18.00 WIB - onwards', venue:'Balai Kartini, Kartika Expo', address:'Jl. Gatot Subroto Kav. 37, South Jakarta', maps:'https://maps.google.com/?q=Balai+Kartini+Jakarta', capacity:450 }
+  ],
+  story: [
+    { year:'2018', title:'Assigned to the same project', text:'Strangers put on one team. The first meeting ran two hours over.' },
+    { year:'2020', title:'Jakarta to Surabaya', text:'Two years of nightly calls across the island.' },
+    { year:'2026', title:'The day itself', text:'And now it is here. We would like you in the room.' }
+  ],
+  gallery: [],
+  gifts: [
+    { bank:'Bank BCA', number:'1234567890', holder:'Kenneth Adrianto' },
+    { bank:'Bank Mandiri', number:'0987654321', holder:'Kimberly Kirana' }
+  ],
+  giftAddress: 'Kimberly Kirana - +62 812 3456 7890\nJl. Melati Indah No. 21, South Jakarta 12160',
+  music: '',
+  dress: 'Black tie optional. Doors open thirty minutes before each service.',
+  closing: 'It would be an honour to have you with us as we begin this chapter.'
+});
+
+/* ============================================================
+   3. TEMA UNDANGAN
+   ============================================================ */
+const FONTSETS = {
+  cormorant: { display:"'Cormorant Garamond',Georgia,serif", script:"'Pinyon Script',cursive", util:"'Jost',sans-serif",
+    q:'Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Pinyon+Script&family=Jost:wght@300;400;500' },
+  playfair:  { display:"'Playfair Display',Georgia,serif", script:"'Parisienne',cursive", util:"'Montserrat',sans-serif",
+    q:'Playfair+Display:ital,wght@0,400;0,500;1,400&family=Parisienne&family=Montserrat:wght@300;400;500' },
+  marcellus: { display:"'Marcellus',Georgia,serif", script:"'Marcellus',serif", util:"'Josefin Sans',sans-serif",
+    q:'Marcellus&family=Josefin+Sans:wght@300;400;500' },
+  lora:      { display:"'Lora',Georgia,serif", script:"'Great Vibes',cursive", util:"'Jost',sans-serif",
+    q:'Lora:ital,wght@0,400;0,500;1,400&family=Great+Vibes&family=Jost:wght@300;400;500' },
+  cinzel:    { display:"'Cinzel',Georgia,serif", script:"'Cormorant Garamond',serif", util:"'Jost',sans-serif",
+    q:'Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@300;400;500' }
+};
+
+const FONTLABEL = {
+  cormorant: 'Cormorant Garamond + Pinyon Script',
+  playfair:  'Playfair Display + Parisienne',
+  marcellus: 'Marcellus + Josefin Sans (tanpa skrip)',
+  lora:      'Lora + Great Vibes',
+  cinzel:    'Cinzel + Cormorant Garamond'
+};
+
+const THEMES = {
+  ivory: { name:'Ivory Editorial', note:'Terang, lapang, kapital berjarak', font:'cormorant',
+    paper:'#FAF8F4', paper2:'#F3EFE7', ink:'#2C3A30', soft:'#55604F', faint:'#8A9184',
+    accent:'#B08D4F', rule:'rgba(176,141,79,.32)' },
+  midnight: { name:'Midnight Gold', note:'Gelap, tinta emas, resepsi malam', font:'cormorant',
+    paper:'#1C1220', paper2:'#241829', ink:'#F4EDE4', soft:'#B3A3B0', faint:'#8A7C88',
+    accent:'#D4AF6A', rule:'rgba(212,175,106,.3)' },
+  sage: { name:'Sage Botanical', note:'Hijau lembut, hangat, kasual', font:'cormorant',
+    paper:'#F4F6F1', paper2:'#E8EDE3', ink:'#33402F', soft:'#5D6B57', faint:'#8D9A86',
+    accent:'#7C8F6B', rule:'rgba(124,143,107,.36)' },
+  blush: { name:'Blush Powder', note:'Merah muda pudar, lembut, feminin', font:'playfair',
+    paper:'#FDF7F5', paper2:'#F6E9E5', ink:'#4A3236', soft:'#7A5B60', faint:'#A98F93',
+    accent:'#B5757E', rule:'rgba(181,117,126,.3)' },
+  slate: { name:'Slate Modern', note:'Abu dingin, tanpa skrip, sangat minimal', font:'marcellus',
+    paper:'#F7F7F6', paper2:'#EAEAE8', ink:'#26292B', soft:'#565B5E', faint:'#8B9093',
+    accent:'#6E7A80', rule:'rgba(110,122,128,.34)' },
+  terracotta: { name:'Terracotta Warm', note:'Tanah liat, hangat, rustic', font:'lora',
+    paper:'#FBF5EF', paper2:'#F2E6DA', ink:'#3F2E26', soft:'#6D5546', faint:'#9C8474',
+    accent:'#B0603F', rule:'rgba(176,96,63,.3)' },
+  navy: { name:'Navy Classic', note:'Biru tua formal, kesan black-tie', font:'cinzel',
+    paper:'#F6F5F1', paper2:'#E9E8E2', ink:'#1D2B44', soft:'#48566E', faint:'#818C9E',
+    accent:'#9C7C43', rule:'rgba(156,124,67,.34)' },
+  mocha: { name:'Mocha Minimal', note:'Cokelat susu, tenang, sedikit ornamen', font:'cormorant',
+    paper:'#F7F3EE', paper2:'#EBE3D9', ink:'#3B322B', soft:'#6B5C4F', faint:'#9A8B7C',
+    accent:'#8C7355', rule:'rgba(140,115,85,.32)' },
+  satin: { name:'Satin Draped', note:'Kain satin timbul, medali monogram, galeri masonry', font:'cormorant',
+    paper:'#F1ECE3', paper2:'#E7DFD1', ink:'#4A4030', soft:'#786A55', faint:'#A79A85',
+    accent:'#8C7355', rule:'rgba(140,115,85,.34)' },
+  custom: { name:'Kustom', note:'Atur warna dan font Anda sendiri', font:'cormorant',
+    paper:'#F7F4EE', paper2:'#ECE6D8', ink:'#2E2A22', soft:'#5C5648', faint:'#928C7B',
+    accent:'#A6803F', rule:'rgba(166,128,63,.32)' },
+  burgundy: { name:'Burgundy Rose', note:'Marun mewah, kartu berukir, cover coklat hangat', font:'cormorant',
+    paper:'#F3EEE6', paper2:'#EAE2D4', ink:'#4A3B36', soft:'#7A655C', faint:'#A8968C',
+    accent:'#6E1A2B', rule:'rgba(110,26,43,.28)',
+    cardBg:'#F1EBE1', coverA:'#6E4632', coverB:'#3A241B', bar:'#5A1523' },
+  onyx: { name:'Onyx & Gold', note:'Hitam pekat, emas cair, paling formal', font:'cinzel',
+    paper:'#141210', paper2:'#1E1A16', ink:'#F0E6D2', soft:'#B8A98C', faint:'#7C7361',
+    accent:'#C9A24B', rule:'rgba(201,162,75,.34)',
+    cardBg:'#1C1813', coverA:'#241E17', coverB:'#0C0A08', bar:'#0E0C0A', gilded:true },
+  emerald: { name:'Emerald Royal', note:'Hijau zamrud tua & emas, mewah klasik', font:'cinzel',
+    paper:'#0E2019', paper2:'#132A20', ink:'#EDE5CE', soft:'#A9B8A4', faint:'#6E8074',
+    accent:'#C6A64E', rule:'rgba(198,166,78,.32)',
+    cardBg:'#123024', coverA:'#123A2A', coverB:'#08150F', bar:'#0A1E15', gilded:true },
+  wine: { name:'Wine Velvet', note:'Marun beludru gelap & emas champagne', font:'cormorant',
+    paper:'#1E0F13', paper2:'#2A151A', ink:'#F2E4D8', soft:'#C4A398', faint:'#8A6A63',
+    accent:'#D8B26A', rule:'rgba(216,178,106,.32)',
+    cardBg:'#2A151A', coverA:'#3A1820', coverB:'#150A0D', bar:'#3A1820', gilded:true },
+  kenkim: { name:'Ken & Kim (Signature)', note:'Template khas kalian — foto cover, emas, kartu berukir', font:'cormorant',
+    paper:'#17130E', paper2:'#211A12', ink:'#F3E9D6', soft:'#C3B291', faint:'#8A7C63',
+    accent:'#CBA45A', rule:'rgba(203,164,90,.34)',
+    cardBg:'#1E1710', coverA:'#2A2015', coverB:'#0E0B07', bar:'#0E0B07', gilded:true }
+};
+
+const COVERS = {
+  fade:     { name:'Lembut', note:'Halaman memudar ke atas' },
+  envelope: { name:'Buka Amplop', note:'Tutup amplop terangkat' },
+  curtain:  { name:'Tirai', note:'Terbelah ke kiri dan kanan' },
+  petals:   { name:'Kelopak', note:'Kelopak berguguran, lalu memudar' },
+  satin:    { name:'Medali Satin', note:'Kain satin timbul dengan medali monogram' },
+  rose:     { name:'Cover Mawar', note:'Latar coklat hangat, monogram bunga, nama script' }
+};
+
+/* ============================================================
+   4. UTIL
+   ============================================================ */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s == null ? '' : s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const nl2br = (s) => esc(s).replace(/\n/g,'<br>');
+const uid = () => Math.random().toString(36).slice(2,10);
+const code = () => Math.random().toString(36).slice(2,7).toUpperCase();
+
+/* Campur dua warna hex — dipakai untuk menurunkan warna teks lembut/redup dari tema Kustom */
+function mixHex(hexA, hexB, amt){
+  const p = (h) => {
+    h = String(h || '#000000').replace('#','');
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    const n = parseInt(h, 16) || 0;
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  };
+  const [ar,ag,ab] = p(hexA), [br,bg,bb] = p(hexB);
+  const mix = (a,b) => Math.round(a + (b - a) * amt);
+  const c = (v) => v.toString(16).padStart(2,'0');
+  return '#' + c(mix(ar,br)) + c(mix(ag,bg)) + c(mix(ab,bb));
+}
+
+function deriveCustomPalette(t){
+  return Object.assign({}, t, {
+    soft:  mixHex(t.ink, t.paper, 0.36),
+    faint: mixHex(t.ink, t.paper, 0.58),
+    rule:  mixHex(t.accent, t.paper, 0.35) + 'aa'
+  });
+}
+
+let toastTimer;
+function toast(msg){
+  const t = $('#toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), 2600);
+}
+
+function icon(name){
+  const p = {
+    home:'<path d="M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/>',
+    edit:'<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16Z"/>',
+    theme:'<circle cx="12" cy="12" r="9"/><path d="M12 3v18"/>',
+    users:'<circle cx="9" cy="8" r="3.4"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M17 11.5a3 3 0 1 0-1.6-5.5M18 20a5.6 5.6 0 0 0-2.2-4.4"/>',
+    check:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/>',
+    chat:'<path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l.9-5A8 8 0 1 1 21 12Z"/>',
+    scan:'<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/>',
+    cog:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
+    eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+    chart:'<path d="M4 20V4M4 20h16M8 20v-6M13 20V9M18 20v-9"/>',
+    plus:'<path d="M12 5v14M5 12h14"/>',
+    copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+    down:'<path d="M12 3v13M7 12l5 5 5-5M4 21h16"/>',
+    trash:'<path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>'
+  }[name] || '';
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
+}
+
+/* ============================================================
+   5. STATE
+   ============================================================ */
+const S = { data:null, guests:[], wishes:[], opens:[], view:'dash', unlocked:false, editingGuest:null };
+
+async function load(){
+  S.data   = (await Store.get(K.data))   || seed();
+  S.guests = (await Store.get(K.guests)) || [];
+  S.wishes = (await Store.get(K.wishes)) || [];
+  S.opens  = (await Store.get(K.opens))  || [];
+  // isi bagian baru untuk data yang dibuat sebelum fitur ini ada
+  const base = seed();
+  ['opening','og'].forEach(k => { if (!S.data[k]) S.data[k] = base[k]; });
+  ['hosts','rundown'].forEach(k => { if (!Array.isArray(S.data[k])) S.data[k] = base[k]; });
+  if (!S.data.meta.cover) S.data.meta.cover = 'fade';
+  if (!S.data.meta.nav) S.data.meta.nav = 'none';
+  if (!S.data.meta.gallery) S.data.meta.gallery = 'grid';
+  if (!S.data.meta.card) S.data.meta.card = 'plain';
+  if (!S.data.meta.rsvp) S.data.meta.rsvp = 'form';
+  if (S.data.meta.customTheme === undefined) S.data.meta.customTheme = null;
+}
+const saveData   = () => Store.set(K.data, S.data);
+const saveGuests = () => Store.set(K.guests, S.guests);
+const saveWishes = () => Store.set(K.wishes, S.wishes);
+const saveOpens  = () => Store.set(K.opens, S.opens);
+
+/* ============================================================
+   6. RENDER UNDANGAN  (dipakai preview, ekspor, dan mode tamu)
+   ============================================================ */
+function renderInvitation(d, guest){
+  const th = (d.meta.theme === 'custom')
+    ? deriveCustomPalette(Object.assign({}, THEMES.custom, d.meta.customTheme || {}))
+    : (THEMES[d.meta.theme] || THEMES.ivory);
+  const fs = FONTSETS[th.font] || FONTSETS.cormorant;
+  const t = { paper:th.paper, paper2:th.paper2, ink:th.ink, soft:th.soft, faint:th.faint,
+              accent:th.accent, rule:th.rule,
+              display:fs.display, script:fs.script, util:fs.util };
+  const cover = (d.meta && d.meta.cover) || 'fade';
+  const navStyle = (d.meta && d.meta.nav) || 'none';
+  const galStyle = (d.meta && d.meta.gallery) || 'grid';
+  const cardStyle = (d.meta && d.meta.card) || 'plain';
+  const rsvpStyle = (d.meta && d.meta.rsvp) || 'form';
+  // extra colours only some themes define; fall back gracefully
+  const cardBg = th.cardBg || t.paper;
+  const coverA = th.coverA || t.paper2;
+  const coverB = th.coverB || t.paper;
+  const barColor = th.bar || t.accent;
+  const gilded = !!th.gilded;
+  const accent2 = gilded ? mixHex(t.accent, '#FFFFFF', 0.4) : t.accent;
+  const g = guest || null;
+  const guestName = g ? g.name : 'Our honoured guest';
+
+  const showBuildings = (d.meta.theme === 'burgundy');
+  const eventsHTML = (d.events || []).map((e,i) =>
+    '<article class="ev reveal">' +
+      (showBuildings ? '<div class="bldg-slot" data-b="' + (i === 0 ? 'short' : 'tall') + '"></div>' : '') +
+      '<p class="lbl">' + esc(e.kind) + '</p>' +
+      '<p class="ev__d">' + esc(e.date) + '</p>' +
+      '<p class="ev__t">' + esc(e.time) + '</p>' +
+      '<p class="ev__v">' + esc(e.venue) + '</p>' +
+      '<p class="ev__a">' + esc(e.address) + '</p>' +
+      (e.maps ? '<a class="btn line" href="' + esc(e.maps) + '" target="_blank" rel="noopener">View Location</a>' : '') +
+    '</article>').join('');
+
+  const storyHTML = (d.story || []).map(s =>
+    '<article class="ch reveal"><p class="ch__y">' + esc(s.year) + '</p><div>' +
+    '<h3 class="ch__h">' + esc(s.title) + '</h3>' +
+    '<p class="ch__p">' + esc(s.text) + '</p></div></article>').join('');
+
+  const galleryHTML = (d.gallery || []).filter(Boolean).map((u,i) =>
+    '<button class="shot" type="button" aria-label="Enlarge photograph ' + (i+1) + '">' +
+    '<img src="' + esc(u) + '" alt="Wedding photograph ' + (i+1) + '" loading="lazy"></button>').join('');
+  const galClass = 'gal' + (galStyle === 'masonry' ? ' masonry' : '');
+
+  const giftsHTML = (d.gifts || []).map((a,i) =>
+    '<article class="acct reveal"><p class="acct__b">' + esc(a.bank) + '</p>' +
+    '<p class="acct__n" id="acct' + i + '">' + esc(a.number) + '</p>' +
+    '<p class="acct__w">' + esc(a.holder) + '</p>' +
+    '<button class="btn line" type="button" data-copy="acct' + i + '">Copy Number</button></article>').join('');
+
+  const wishesHTML = (S.wishes || []).filter(w => {
+    const approved = w.approval ? w.approval === 'approved' : (w.status !== 'hidden');
+    const isPublic = (w.privacy || 'public') === 'public';
+    return approved && isPublic;
+  }).slice(0,30).map(w =>
+    '<article class="wsh"><div class="wsh__t"><span class="wsh__n">' + esc(w.name) + '</span>' +
+    '<span class="wsh__r">' + esc(w.rsvpLabel || '') + '</span></div>' +
+    '<p class="wsh__m">' + esc(w.message) + '</p></article>').join('') ||
+    '<p class="lede center">No messages yet. Be the first.</p>';
+
+  const dressFigure = (mode) => {
+    // Coloured couple: dark suit + burgundy gown, matches Connectied dress-code art
+    return '<svg viewBox="0 0 140 190" width="104" aria-hidden="true">' +
+      // groom
+      '<g stroke="#2A2622" stroke-width=".8">' +
+      '<ellipse cx="42" cy="24" rx="10" ry="12" fill="#E8C9A8"/>' +
+      '<path d="M34 16c0-6 4-9 8-9s8 3 8 9c-2-3-5-4-8-4s-6 1-8 4Z" fill="#2A2622"/>' +
+      '<path d="M42 36c-13 0-19 10-19 24v70h38V60c0-14-6-24-19-24Z" fill="#26262B"/>' +
+      '<path d="M42 40v90M34 52l8 8 8-8" fill="none" stroke="#0F0F12"/>' +
+      '<path d="M38 44h8v14l-4 4-4-4Z" fill="#F4EFE8"/>' +
+      '<path d="M40 50l2 3 2-3" fill="none" stroke="#5A1523" stroke-width="1.4"/>' +
+      '<rect x="30" y="128" width="10" height="34" fill="#1C1C20"/><rect x="44" y="128" width="10" height="34" fill="#1C1C20"/>' +
+      '</g>' +
+      // bride
+      '<g stroke="#3A0F1A" stroke-width=".8">' +
+      '<ellipse cx="96" cy="24" rx="9" ry="11" fill="#E8C9A8"/>' +
+      '<path d="M87 22c0-9 5-13 9-13s9 4 9 12c0 6-3 9-3 9l-3-8-3 6-3-6-3 8s-3-3-3-8Z" fill="#3A2318"/>' +
+      '<path d="M96 34c-6 0-10 4-11 10l-3 108h28l-3-108c-1-6-5-10-11-10Z" fill="#6E1A2B"/>' +
+      '<path d="M85 60c7 4 15 4 22 0M84 84c8 4 16 4 24 0M82 110c9 4 19 4 28 0" fill="none" stroke="#4A0F1C"/>' +
+      '<path d="M89 40c2 4 12 4 14 0" fill="none" stroke="#4A0F1C"/>' +
+      '</g></svg>';
+  };
+
+  const dressHTML = d.dress ?
+    '<section class="sec center" id="dress"><p class="lbl">Dress Code</p>' +
+    '<h2 class="ttl">' + esc(d.dressTitle || 'We kindly encourage our guests to wear the following colours') + '</h2>' +
+    '<div class="dres reveal">' +
+      '<div class="dres__c"><div class="dres__f">' + dressFigure('a') + '</div>' +
+      '<p class="dres__k">' + esc((d.events[0] && d.events[0].kind) || 'Ceremony') + '</p>' +
+      '<p class="dres__v">' + esc(d.dress) + '</p></div>' +
+    '</div></section>' : '';
+
+  const ticketHTML = g ?
+    '<section class="sec center" id="ticket"><p class="lbl">Your Entry Pass</p>' +
+    '<h2 class="ttl">Scan this at the door</h2>' +
+    '<div class="pass"><p class="pass__n">' + esc(g.name) + '</p>' +
+    '<div class="qrb" id="qrb"><span class="qrb__w">Loading code...</span></div>' +
+    '<p class="pass__c">' + esc(g.code) + '</p>' +
+    '<p class="pass__p">' + (g.pax || 1) + ' guest(s)</p></div>' +
+    '<p class="lede">Show this screen to our usher. If the scanner fails, ' +
+    'the code below the square works just as well.</p></section>' : '';
+
+  const igLink = (h, u) => u ? '<a class="ig" href="https://instagram.com/' + esc(u) + '" target="_blank" rel="noopener">@' + esc(u) + '</a>' : '';
+
+  const person = (p, role, mark) =>
+    '<article class="prs reveal"><div class="pt">' +
+    (p.photo ? '<img src="' + esc(p.photo) + '" alt="Portrait of ' + esc(p.full) + '">'
+             : '<span class="pt__m">' + esc(mark) + '</span>') +
+    '</div><h3 class="prs__n">' + esc(p.short) + '</h3>' +
+    '<p class="prs__r">' + role + '</p>' +
+    '<p class="prs__p">' + esc(p.full) + '<br>' +
+    (p.order ? esc(p.order) + '<br>' : '') +
+    esc(p.father) + ' &amp; ' + esc(p.mother) + '</p>' +
+    igLink(p.short, p.ig) + '</article>';
+
+  const hostsHTML = (d.hosts || []).filter(Boolean).length ?
+    '<section class="sec center" id="hosts"><p class="lbl">Together With</p>' +
+    '<div class="rule"><i></i></div>' +
+    '<div class="hosts reveal">' + (d.hosts || []).filter(Boolean).map(h =>
+      '<p>' + esc(h) + '</p>').join('') + '</div></section>' : '';
+
+  const rundownHTML = (d.rundown || []).filter(r => r.item).length ?
+    '<div class="rdn reveal"><p class="lbl center" style="margin-bottom:18px">Order of Service</p>' +
+    (d.rundown || []).filter(r => r.item).map(r =>
+      '<div class="rdn__r"><span>' + esc(r.time) + '</span><span>' + esc(r.item) + '</span></div>').join('') +
+    '</div>' : '';
+
+  const openingHTML = (d.opening && (d.opening.greeting || d.opening.text)) ?
+    '<section class="sec center" id="opening">' +
+    (d.opening.greeting ? '<p class="scr">' + esc(d.opening.greeting) + '</p>' : '') +
+    (d.opening.text ? '<p class="lede reveal" style="margin-top:22px">' + esc(d.opening.text) + '</p>' : '') +
+    '<div class="rule"><i></i></div></section>' : '';
+
+  const useConcave = cardStyle === 'framed';
+  const roseCorners = (d.meta.theme === 'burgundy');
+  const openCard  = useConcave
+    ? (roseCorners
+        ? '<div class="rosewrap">' + roseSVG('tl', 130, false).replace('class="rose"','class="rose tl"') +
+          roseSVG('br', 150, false).replace('class="rose"','class="rose br"') +
+          roseSVG('eml', 150, true).replace('class="rose"','class="rose emb eml"') +
+          roseSVG('emr', 130, true).replace('class="rose"','class="rose emb emr"') +
+          '<div class="cardframe concave">'
+        : '<div class="cardframe">')
+    : '';
+  const closeCard = useConcave ? (roseCorners ? '</div></div>' : '</div>') : '';
+
+  const css =
+'*,*::before,*::after{box-sizing:border-box}' +
+'html{scroll-behavior:smooth}' +
+'body{margin:0;background:' + t.paper2 + ';color:' + t.ink + ';font-family:' + t.display + ';font-size:18px;line-height:1.75;-webkit-font-smoothing:antialiased;overflow-x:hidden}' +
+'body.lock{overflow:hidden;height:100dvh}' +
+'img{max-width:100%;display:block}' +
+':focus-visible{outline:2px solid ' + t.accent + ';outline-offset:3px}' +
+'.paper{max-width:500px;margin:0 auto;background:' + t.paper + ';position:relative;overflow:hidden;padding-bottom:40px;box-shadow:0 0 60px -30px rgba(0,0,0,.45)}' +
+'.sec{padding:96px 34px}' +
+'.center{text-align:center}' +
+'.lbl{font-family:' + t.util + ';font-size:10px;letter-spacing:.44em;text-transform:uppercase;color:' + t.accent + ';margin:0}' +
+'.scr{font-family:' + t.script + ';color:' + t.accent + ';font-size:30px;line-height:1;margin:0}' +
+'.ttl{font-weight:300;font-size:32px;line-height:1.25;margin:16px 0 0}' +
+'.lede{font-weight:300;font-size:17px;color:' + t.soft + ';margin:16px auto 0;max-width:34ch}' +
+'.names{font-weight:300;text-transform:uppercase;line-height:1.1;margin:0}' +
+'.names span{display:block}' +
+'.names .and{font-family:' + t.script + ';text-transform:none;color:' + t.accent + ';letter-spacing:0;text-indent:0;font-size:32px;margin:9px 0 5px}' +
+'.rule{display:flex;align-items:center;gap:12px;justify-content:center;margin:22px auto 0;max-width:190px}' +
+'.rule::before,.rule::after{content:"";flex:1;height:1px;background:' + t.rule + '}' +
+'.rule i{width:7px;height:7px;border:1px solid ' + t.accent + ';transform:rotate(45deg)}' +
+'.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 26px;border:1px solid ' + t.ink + ';background:' + t.ink + ';color:' + t.paper + ';font-family:' + t.util + ';font-size:11px;letter-spacing:.24em;text-transform:uppercase;text-decoration:none;cursor:pointer;transition:opacity .25s}' +
+'.btn:hover{opacity:.85}' +
+'.btn.line{background:transparent;color:' + t.ink + ';border-color:' + t.rule + '}' +
+'.load{position:fixed;inset:0;z-index:150;display:grid;place-items:center;background:' + t.paper + ';transition:opacity .6s ease}' +
+'.load.gone{opacity:0;pointer-events:none}' +
+'.load__m{font-family:' + t.script + ';font-size:44px;color:' + t.accent + ';line-height:1}' +
+'.load__b{width:120px;height:1px;background:' + t.rule + ';margin:22px auto 0;position:relative;overflow:hidden}' +
+'.load__b i{position:absolute;inset:0;background:' + t.accent + ';transform-origin:left;transform:scaleX(0);animation:fill 1.4s ease forwards}' +
+'@keyframes fill{to{transform:scaleX(1)}}' +
+'.cover{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:32px 22px;background:' + t.paper + ';transition:opacity .9s ease,transform 1s ease}' +
+'.cover.open{opacity:0;transform:scale(1.03);pointer-events:none}' +
+/* buka amplop */
+'.cover.env .frame{transform-origin:top center;transition:transform .9s cubic-bezier(.5,0,.3,1),opacity .7s ease .35s}' +
+'.cover.env.open{opacity:0;transform:none}' +
+'.cover.env.open .frame{transform:perspective(900px) rotateX(-92deg);opacity:0}' +
+/* tirai */
+'.cvt{position:fixed;top:0;bottom:0;width:50.5%;z-index:101;background:' + t.paper2 + ';transition:transform 1s cubic-bezier(.6,0,.2,1);pointer-events:none}' +
+'.cvt.l{left:0;border-right:1px solid ' + t.rule + '}' +
+'.cvt.r{right:0;border-left:1px solid ' + t.rule + '}' +
+'.cvt.go.l{transform:translateX(-101%)}' +
+'.cvt.go.r{transform:translateX(101%)}' +
+/* kelopak */
+'.ptl{position:fixed;inset:0;z-index:99;overflow:hidden;pointer-events:none}' +
+'.ptl i{position:absolute;top:-24px;width:9px;height:13px;border-radius:60% 0 60% 0;background:' + t.accent + ';opacity:0;animation:fall linear infinite}' +
+'@keyframes fall{0%{opacity:0;transform:translateY(-20px) rotate(0)}10%{opacity:.5}90%{opacity:.35}100%{opacity:0;transform:translateY(102vh) rotate(420deg)}}' +
+'.hosts{margin-top:32px}' +
+'.hosts p{font-weight:300;font-size:19px;margin:0;padding:11px 0;border-bottom:1px solid ' + t.rule + '}' +
+'.hosts p:last-child{border-bottom:0}' +
+'.rdn{margin-top:36px;padding-top:32px;border-top:1px solid ' + t.rule + '}' +
+'.rdn__r{display:flex;gap:18px;padding:9px 0;border-bottom:1px solid ' + t.rule + '}' +
+'.rdn__r:last-child{border-bottom:0}' +
+'.rdn__r span:first-child{font-family:' + t.util + ';font-size:11px;letter-spacing:.16em;color:' + t.accent + ';min-width:52px;padding-top:5px}' +
+'.rdn__r span:last-child{font-weight:300;font-size:17px;color:' + t.soft + '}' +
+'.frame{position:relative;width:100%;max-width:410px;padding:70px 22px 46px;text-align:center;border:1px solid ' + t.rule + '}' +
+'.frame::before,.frame::after{content:"";position:absolute;width:16px;height:16px;border:1px solid ' + t.accent + '}' +
+'.frame::before{top:-1px;left:-1px;border-right:0;border-bottom:0}' +
+'.frame::after{bottom:-1px;right:-1px;border-left:0;border-top:0}' +
+'.cv__n{font-size:clamp(28px,9vw,42px);letter-spacing:.26em;text-indent:.26em;margin:22px 0 0}' +
+'.cv__d{margin-top:32px;padding-top:22px;border-top:1px solid ' + t.rule + ';font-family:' + t.util + ';font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:' + t.soft + '}' +
+'.gst{margin-top:44px}' +
+'.gst__l{font-family:' + t.util + ';font-size:9px;letter-spacing:.32em;text-transform:uppercase;color:' + t.faint + ';margin:0 0 9px}' +
+'.gst__n{font-style:italic;font-size:23px;margin:0 0 32px}' +
+'.reveal{opacity:0;transform:translateY(18px);transition:opacity .9s ease,transform .9s ease}' +
+'.reveal.in{opacity:1;transform:none}' +
+'.vrs{font-style:italic;font-weight:300;font-size:21px;line-height:1.8;margin:32px 0 0}' +
+'.vrs cite{display:block;margin-top:22px;font-style:normal;font-family:' + t.util + ';font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:' + t.accent + '}' +
+'.prs{text-align:center}' +
+'.pt{width:186px;height:232px;margin:0 auto 22px;overflow:hidden;position:relative;background:' + t.paper2 + ';border:1px solid ' + t.rule + '}' +
+'.pt img{width:100%;height:100%;object-fit:cover}' +
+'.pt__m{position:absolute;inset:0;display:grid;place-items:center;font-family:' + t.script + ';font-size:66px;color:' + t.accent + ';opacity:.5}' +
+'.prs__n{font-weight:300;font-size:25px;letter-spacing:.2em;text-transform:uppercase;text-indent:.2em;margin:0}' +
+'.prs__r{font-family:' + t.util + ';font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:' + t.accent + ';margin:11px 0 0}' +
+'.prs__p{font-weight:300;font-size:16px;color:' + t.soft + ';margin:14px 0 0;line-height:1.65}' +
+'.ig{display:inline-flex;align-items:center;min-height:44px;font-family:' + t.util + ';font-size:11px;letter-spacing:.14em;color:' + t.soft + ';text-decoration:none}' +
+'.link{font-family:' + t.script + ';font-size:42px;color:' + t.accent + ';text-align:center;line-height:1;margin:46px 0}' +
+'.cd{display:grid;grid-template-columns:repeat(4,1fr);margin-top:44px;border-top:1px solid ' + t.rule + ';border-bottom:1px solid ' + t.rule + '}' +
+'.u{padding:22px 2px;text-align:center}' +
+'.u+.u{border-left:1px solid ' + t.rule + '}' +
+'.u b{display:block;font-weight:300;font-size:32px;line-height:1;font-variant-numeric:tabular-nums}' +
+'.u span{display:block;font-family:' + t.util + ';font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:' + t.faint + ';margin-top:8px}' +
+'.ev{text-align:center}' +
+'.ev+.ev{margin-top:46px;padding-top:46px;border-top:1px solid ' + t.rule + '}' +
+'.ev .lbl{margin-bottom:20px}' +
+'.ev__d{font-weight:300;font-size:29px;margin:0}' +
+'.ev__t{font-family:' + t.util + ';font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:' + t.accent + ';margin:11px 0 0}' +
+'.ev__v{font-size:19px;margin:22px 0 0}' +
+'.ev__a{font-weight:300;font-size:16px;color:' + t.soft + ';margin:6px 0 22px}' +
+'.ch{display:grid;grid-template-columns:60px 1fr;gap:14px}' +
+'.ch+.ch{margin-top:32px;padding-top:32px;border-top:1px solid ' + t.rule + '}' +
+'.ch__y{font-family:' + t.util + ';font-size:11px;letter-spacing:.14em;color:' + t.accent + ';padding-top:7px;margin:0}' +
+'.ch__h{font-weight:400;font-size:20px;margin:0}' +
+'.ch__p{font-weight:300;font-size:16px;color:' + t.soft + ';margin:7px 0 0}' +
+'.gal{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:44px}' +
+'.shot{aspect-ratio:3/4;overflow:hidden;border:0;padding:0;background:' + t.paper2 + ';cursor:pointer}' +
+'.shot:first-child{grid-column:span 2;aspect-ratio:16/10}' +
+'.shot img{width:100%;height:100%;object-fit:cover;transition:transform .7s ease}' +
+'.shot:hover img{transform:scale(1.05)}' +
+'.f{margin-bottom:22px;text-align:left}' +
+'.f label{display:block;font-family:' + t.util + ';font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:' + t.soft + ';margin-bottom:8px}' +
+'.f input,.f select,.f textarea{width:100%;min-height:48px;padding:11px 0;background:transparent;border:0;border-bottom:1px solid ' + t.rule + ';color:' + t.ink + ';font-family:' + t.display + ';font-size:18px}' +
+'.f textarea{min-height:88px;resize:vertical}' +
+'.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-bottom-color:' + t.accent + '}' +
+'.f .bad{font-family:' + t.util + ';font-size:11px;color:#A2503F;margin:7px 0 0;display:none}' +
+'.f.err .bad{display:block}' +
+'.f.err input,.f.err select{border-bottom-color:#A2503F}' +
+'.sent{display:none;margin-top:22px;padding-top:22px;border-top:1px solid ' + t.rule + ';font-style:italic;font-weight:300;color:' + t.soft + '}' +
+'.tkt{margin-top:26px;padding:28px 22px;border:1px solid ' + t.rule + ';text-align:center;background:' + (th.cardBg || t.paper2) + '}' +
+'.tkt__lbl{font-family:' + t.util + ';font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:' + t.accent + ';margin:0}' +
+'.tkt__name{font-family:' + t.display + ';font-size:22px;margin:10px 0 0;color:' + t.ink + '}' +
+'.tkt__qr{display:inline-block;padding:14px;background:#fff;margin:18px auto 6px;line-height:0;border:1px solid ' + t.rule + '}' +
+'.tkt__qr img,.tkt__qr canvas{display:block}' +
+'.tkt__code{font-family:' + t.util + ';font-size:26px;font-weight:500;letter-spacing:.3em;text-indent:.3em;color:' + t.accent + ';margin:4px 0 18px}' +
+'.tkt__hint{font-family:' + t.util + ';font-size:11px;letter-spacing:.06em;color:' + t.faint + ';margin:14px 0 0}' +
+'.sent.on{display:block}' +
+'.wsh{padding:20px 0;border-bottom:1px solid ' + t.rule + ';text-align:left}' +
+'.wsh__t{display:flex;justify-content:space-between;gap:12px;align-items:baseline}' +
+'.wsh__n{font-family:' + t.util + ';font-size:11px;letter-spacing:.18em;text-transform:uppercase}' +
+'.wsh__r{font-family:' + t.util + ';font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:' + t.accent + '}' +
+'.wsh__m{font-weight:300;font-style:italic;font-size:17px;color:' + t.soft + ';margin:7px 0 0}' +
+'.wshs{margin-top:32px;max-height:320px;overflow-y:auto}' +
+'.acct{text-align:center}' +
+'.acct+.acct{margin-top:32px;padding-top:32px;border-top:1px solid ' + t.rule + '}' +
+'.acct__b{font-family:' + t.util + ';font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:' + t.accent + ';margin:0}' +
+'.acct__n{font-weight:300;font-size:27px;letter-spacing:.12em;font-variant-numeric:tabular-nums;margin:11px 0 2px}' +
+'.acct__w{font-weight:300;font-size:16px;color:' + t.soft + ';margin:0 0 22px}' +
+'.pass{border:1px solid ' + t.rule + ';padding:26px;margin:32px 0}' +
+'.qrb{display:inline-block;padding:13px;background:#fff;border:1px solid ' + t.rule + ';margin:20px 0 4px;line-height:0}' +
+'.qrb img,.qrb canvas{display:block}' +
+'.qrb__w{display:block;font-family:' + t.util + ';font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#8A8A8A;line-height:1.6;padding:60px 22px}' +
+'.pass__n{font-size:22px;margin:0}' +
+'.pass__c{font-family:' + t.util + ';font-size:30px;font-weight:500;letter-spacing:.3em;text-indent:.3em;color:' + t.accent + ';margin:14px 0}' +
+'.pass__p{font-family:' + t.util + ';font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:' + t.faint + ';margin:0}' +
+'.close{padding:96px 34px 76px;text-align:center;background:' + t.paper2 + '}' +
+'.close__n{font-size:27px;letter-spacing:.24em;text-indent:.24em;margin-top:22px}' +
+'.colo{font-family:' + t.util + ';font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:' + t.faint + ';margin-top:44px}' +
+'.lb{position:fixed;inset:0;z-index:200;display:none;place-items:center;padding:22px;background:rgba(20,16,18,.94)}' +
+'.lb.on{display:grid}' +
+'.lb img{max-height:84dvh}' +
+'.lbx{position:absolute;top:16px;right:16px;width:44px;height:44px;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;cursor:pointer;font-size:20px}' +
+'.tst{position:fixed;left:50%;bottom:30px;transform:translate(-50%,12px);z-index:210;padding:11px 22px;background:' + t.ink + ';color:' + t.paper + ';font-family:' + t.util + ';font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}' +
+'.tst.on{opacity:1;transform:translate(-50%,0)}' +
+(gilded ?
+  /* Gold-leaf gradient on script + names for luxury dark themes */
+  '.scr,.cv__n .and,.link,.person__name,.close__n,.names .and{' +
+    'background:linear-gradient(180deg,' + accent2 + ',' + t.accent + ' 55%,' + mixHex(t.accent,'#000000',0.25) + ');' +
+    '-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:' + t.accent + '}' +
+  '.ttl{color:' + t.ink + '}' +
+  '.lbl{color:' + accent2 + ';opacity:.92}' +
+  /* faint gold vignette on the page */
+  '.paper{background:' +
+    'radial-gradient(120% 50% at 50% 0,' + mixHex(t.paper2,t.accent,0.08) + ',transparent 60%),' + t.paper + '}' +
+  '.rule i{box-shadow:0 0 8px ' + t.accent + '55}' +
+  '' : '') +
+/* Satin cover — CSS-drawn fabric, no external photo */
+'.cover.satin{background:' +
+  'radial-gradient(ellipse 140% 60% at 18% -8%,rgba(255,255,255,.92),transparent 58%),' +
+  'radial-gradient(ellipse 120% 55% at 88% 106%,rgba(255,255,255,.75),transparent 55%),' +
+  'repeating-linear-gradient(112deg,rgba(255,255,255,.4) 0 16px,rgba(0,0,0,.035) 16px 30px,rgba(255,255,255,.55) 30px 46px),' +
+  'linear-gradient(160deg,#F6F2E9,#EDE6D6 55%,#F1ECE1)}' +
+'.cover.satin .frame{border:0;border-radius:50% 50% 0 0/150px 150px 0 0;background:' + t.paper + ';' +
+  'padding:150px 26px 46px;box-shadow:0 30px 70px -30px rgba(40,32,20,.35)}' +
+'.cover.satin .frame::before,.cover.satin .frame::after{display:none}' +
+'.medallion{position:absolute;top:26px;left:50%;transform:translateX(-50%);' +
+  'filter:drop-shadow(-1.5px -1.5px 1px rgba(255,255,255,.95)) drop-shadow(1.5px 1.5px 2px rgba(0,0,0,.2));opacity:.8}' +
+/* Masonry gallery */
+'.gal.masonry{display:block;column-count:2;column-gap:6px}' +
+'.gal.masonry .shot{width:100%;aspect-ratio:auto;break-inside:avoid;margin-bottom:6px;display:block}' +
+'.gal.masonry .shot img{height:auto}' +
+/* Dress code cards with line-art figures */
+'.dres{display:flex;justify-content:center;gap:26px;margin-top:40px;flex-wrap:wrap}' +
+'.dres__c{width:150px}' +
+'.dres__f{display:flex;justify-content:center;margin-bottom:14px;color:' + t.ink + '}' +
+'.dres__k{font-family:' + t.util + ';font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:' + t.accent + ';margin:0}' +
+'.dres__v{font-weight:300;font-size:15px;color:' + t.soft + ';margin:6px 0 0;text-transform:uppercase;letter-spacing:.06em}' +
+/* Top navigation bar */
+'.topnav{position:sticky;top:0;z-index:80;display:flex;flex-wrap:wrap;justify-content:center;gap:20px;' +
+  'padding:16px 14px;background:' + t.paper + 'e6;backdrop-filter:blur(8px);border-bottom:1px solid ' + t.rule + '}' +
+'.topnav a{font-family:' + t.util + ';font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:' + t.soft + ';text-decoration:none;white-space:nowrap}' +
+'.topnav a:hover{color:' + t.accent + '}' +
+/* Rose cover — warm brown gradient, photo optional, script names */
+'.cover.rose{background:linear-gradient(160deg,' + coverA + ',' + coverB + ' 78%)}' +
+(d.groom.photo || d.bride.photo ?
+  '.cover.rose::after{content:"";position:absolute;inset:0;background:var(--coverimg) center/cover no-repeat;opacity:.5;mix-blend-mode:luminosity}' : '') +
+'.cover.rose .frame{border:0;background:transparent;box-shadow:none;padding:20px}' +
+'.cover.rose .frame::before,.cover.rose .frame::after{display:none}' +
+'.cover.rose .scr,.cover.rose .cv__d,.cover.rose .gst__l,.cover.rose .gst__n{color:#F3E9DF}' +
+'.cover.rose .cv__n{color:#FBF4EC;font-family:' + t.script + ';text-transform:none;letter-spacing:.02em;text-indent:0;font-size:clamp(46px,15vw,78px)}' +
+'.cover.rose .cv__n .and{color:#FBF4EC;font-size:.7em}' +
+'.cover.rose .cv__d{border-color:rgba(255,255,255,.3)}' +
+'.cover.rose .btn{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.5);color:#FBF4EC}' +
+'.quatre{margin:0 auto 8px;color:#F3E9DF;opacity:.92}' +
+/* Concave-corner card frame (Connectied style) */
+'.cardframe{position:relative;max-width:392px;margin:0 auto;padding:54px 34px;background:' + cardBg + ';' +
+  'border:1px solid ' + t.rule + ';border-radius:26px;' +
+  'box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 20px 50px -34px rgba(74,59,54,.5)}' +
+'.cardframe::before{content:"";position:absolute;inset:7px;border:1px solid ' + t.rule + ';border-radius:20px;pointer-events:none}' +
+/* Sticky wide countdown bar */
+'.cbar{position:sticky;top:0;z-index:70;background:' + barColor + ';color:#F6E7DD;text-align:center;padding:20px 16px}' +
+'.cbar h3{font-family:' + t.util + ';font-weight:400;font-size:13px;letter-spacing:.26em;text-transform:uppercase;margin:0 0 14px;color:#F6E7DD}' +
+'.cbar .cd{border:0;margin:0;justify-content:center;max-width:360px;margin-inline:auto}' +
+'.cbar .u+.u{border-color:rgba(255,255,255,.22)}' +
+'.cbar .u b{color:#FBF4EC}.cbar .u span{color:#E4C7BD}' +
+/* Coloured dress-code figures */
+'.dres--art .dres__f svg{display:none}' +
+'.dres__art{width:96px;height:150px;margin:0 auto 14px}' +
+'.rsvpbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:8px 0 4px}' +
+'.rbtn{min-height:46px;padding:0 20px;border:1px solid ' + t.accent + ';background:transparent;color:' + t.accent + ';' +
+  'font-family:' + t.util + ';font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;border-radius:3px;transition:background .2s,color .2s}' +
+'.rbtn.on{background:' + t.accent + ';color:' + cardBg + '}' +
+'.rsvpq{font-family:' + t.util + ';font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:' + t.soft + ';text-align:center;margin:26px 0 4px}' +
+/* Concave-corner card (Connectied invitation card) */
+'.cardframe.concave{border-radius:0;padding:60px 34px;background:' + cardBg + ';position:relative;' +
+  'box-shadow:0 24px 60px -38px rgba(74,40,30,.6);' +
+  '-webkit-mask:radial-gradient(22px at 0 0,transparent 98%,#000) top left,' +
+    'radial-gradient(22px at 100% 0,transparent 98%,#000) top right,' +
+    'radial-gradient(22px at 0 100%,transparent 98%,#000) bottom left,' +
+    'radial-gradient(22px at 100% 100%,transparent 98%,#000) bottom right;' +
+  '-webkit-mask-size:51% 51%;-webkit-mask-repeat:no-repeat;' +
+  'mask:radial-gradient(22px at 0 0,transparent 98%,#000) top left,' +
+    'radial-gradient(22px at 100% 0,transparent 98%,#000) top right,' +
+    'radial-gradient(22px at 0 100%,transparent 98%,#000) bottom left,' +
+    'radial-gradient(22px at 100% 100%,transparent 98%,#000) bottom right;' +
+  'mask-size:51% 51%;mask-repeat:no-repeat}' +
+'.cardframe.concave::before{content:"";position:absolute;inset:9px;border:1px solid ' + t.rule + ';pointer-events:none;' +
+  '-webkit-mask:inherit;mask:inherit}' +
+/* Section with roses at the corners */
+'.rosewrap{position:relative;overflow:hidden}' +
+'.rosewrap .rose{position:absolute;z-index:0;filter:drop-shadow(2px 4px 6px rgba(74,15,28,.3))}' +
+'.rosewrap .rose.tl{top:-30px;left:-34px;transform:rotate(-18deg)}' +
+'.rosewrap .rose.br{bottom:-34px;right:-36px;transform:rotate(160deg)}' +
+'.rosewrap .rose.emb{filter:none;opacity:.6}' +
+'.rosewrap .rose.eml{top:120px;left:-50px;transform:rotate(20deg)}' +
+'.rosewrap .rose.emr{top:60px;right:-46px;transform:rotate(-30deg)}' +
+'.rosewrap>.cardframe{position:relative;z-index:1}' +
+/* Building illustration */
+'.bldg{margin:0 auto 6px;filter:drop-shadow(1px 2px 3px rgba(110,26,43,.15))}' +
+'.venue{text-align:center;margin-top:40px}' +
+'.venue+.venue{margin-top:52px;padding-top:44px;border-top:1px solid ' + t.rule + '}' +
+'@media(max-width:540px){.sec{padding-left:22px;padding-right:22px}}' +
+'@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition-duration:.001ms!important}.reveal{opacity:1;transform:none}}';
+
+  const monogram = () => {
+    const a = esc(d.groom.short.charAt(0)), b = esc(d.bride.short.charAt(0));
+    return '<svg class="medallion" viewBox="0 0 200 220" width="128" aria-hidden="true">' +
+      '<g fill="none" stroke="' + t.rule + '" stroke-width="1">' +
+        '<ellipse cx="100" cy="112" rx="72" ry="84"/>' +
+        '<ellipse cx="100" cy="112" rx="58" ry="70"/>' +
+        '<path d="M38 62c-14 4-22 14-22 26s10 20 22 20"/>' +
+        '<path d="M162 62c14 4 22 14 22 26s-10 20-22 20"/>' +
+        '<path d="M38 162c-14-4-22-14-22-26"/>' +
+        '<path d="M162 162c14-4 22-14 22-26"/>' +
+        '<path d="M100 24c-6 6-9 11-9 16s4 8 9 8 9-3 9-8-3-10-9-16Z"/>' +
+      '</g>' +
+      '<text x="100" y="126" text-anchor="middle" font-family="' + t.script + '" font-size="48" fill="' + t.rule + '">' +
+      a + ' &amp; ' + b + '</text></svg>';
+  };
+
+  const topnavHTML = navStyle === 'top' ?
+    '<nav class="topnav">' +
+      '<a href="#couple">The Wedding</a><a href="#events">The Day</a>' +
+      (d.dress ? '<a href="#dress">Dress Code</a>' : '') +
+      (galleryHTML ? '<a href="#gallery">Gallery</a>' : '') +
+      '<a href="#rsvp">RSVP</a><a href="#gifts">Gift</a>' +
+    '</nav>' : '';
+
+  function quatrefoil(){
+    const a = esc(d.groom.short.charAt(0)), b = esc(d.bride.short.charAt(0));
+    return '<svg class="quatre" viewBox="0 0 90 90" width="70" aria-hidden="true">' +
+      '<g fill="none" stroke="currentColor" stroke-width="1.1">' +
+      '<path d="M45 8c8 0 12 8 10 16 8-2 16 2 16 10s-8 12-16 10c2 8-2 16-10 16s-12-8-10-16c-8 2-16-2-16-10s8-12 16-10c-2-8 2-16 10-16Z"/>' +
+      '<circle cx="45" cy="45" r="15"/></g>' +
+      '<text x="45" y="51" text-anchor="middle" font-family="' + t.script + '" font-size="17" fill="currentColor">' + a + b + '</text></svg>';
+  }
+
+  // Layered red rose, drawn with concentric petal rings + radial shading
+  function roseSVG(id, size, embossed){
+    const deep = embossed ? '#EFE9DF' : '#4A0F1C';
+    const mid  = embossed ? '#F4EEE5' : '#6E1A2B';
+    const lite = embossed ? '#F8F3EB' : '#8C2436';
+    const edge = embossed ? '#E6DFD2' : '#360A14';
+    return '<svg class="rose" viewBox="0 0 120 120" width="' + size + '" aria-hidden="true">' +
+      '<defs><radialGradient id="rg' + id + '" cx="42%" cy="38%" r="65%">' +
+        '<stop offset="0%" stop-color="' + lite + '"/><stop offset="55%" stop-color="' + mid + '"/>' +
+        '<stop offset="100%" stop-color="' + deep + '"/></radialGradient></defs>' +
+      '<g stroke="' + edge + '" stroke-width="1" fill="url(#rg' + id + ')">' +
+        Array.from({length:8}).map((_,i) => {
+          const ang = i * 45;
+          return '<path transform="rotate(' + ang + ' 60 60)" d="M60 60c-15-4-26-14-26-30 0-9 12-16 26-16s26 7 26 16c0 16-11 26-26 30Z" opacity=".95"/>';
+        }).join('') +
+        Array.from({length:6}).map((_,i) => {
+          const ang = i * 60 + 30;
+          return '<path transform="rotate(' + ang + ' 60 60)" d="M60 60c-9-3-16-9-16-19 0-6 7-10 16-10s16 4 16 10c0 10-7 16-16 19Z"/>';
+        }).join('') +
+        '<circle cx="60" cy="60" r="13"/>' +
+        '<path d="M60 49c7 0 11 5 11 11s-5 11-13 10c5-2 7-6 7-10s-3-8-8-8Z"/>' +
+        '<path d="M56 52c-4 2-7 6-7 11 0 3 2 6 5 7-2-3-2-7-1-11 1-3 2-5 3-7Z"/>' +
+      '</g></svg>';
+  }
+
+  // Line-art building illustration (generic tower — stands in for venue sketch)
+  function buildingSVG(tall){
+    return '<svg class="bldg" viewBox="0 0 200 170" width="150" fill="none" stroke="' + t.accent + '" stroke-width="1" aria-hidden="true">' +
+      (tall
+        ? '<rect x="66" y="24" width="68" height="140"/>' +
+          Array.from({length:9}).map((_,r) => '<line x1="66" y1="' + (36 + r*14) + '" x2="134" y2="' + (36 + r*14) + '"/>').join('') +
+          '<line x1="100" y1="24" x2="100" y2="164"/><line x1="83" y1="24" x2="83" y2="164"/><line x1="117" y1="24" x2="117" y2="164"/>' +
+          '<path d="M88 24l12-14 12 14"/><line x1="100" y1="4" x2="100" y2="10"/>' +
+          '<path d="M40 164h120M52 164v-40h14v40M134 164v-40h14v40"/>'
+        : '<path d="M50 164V70l50-30 50 30v94Z"/>' +
+          '<path d="M78 164v-40h44v40"/><rect x="86" y="132" width="12" height="20"/><rect x="102" y="132" width="12" height="20"/>' +
+          '<path d="M70 78h60M70 96h60M70 114h60"/><path d="M92 40V22h16v10"/><line x1="100" y1="16" x2="100" y2="26"/>' +
+          '<path d="M30 164h140"/>') +
+      '</svg>';
+  }
+
+  // Now that buildingSVG exists, replace the event building placeholders
+  const eventsFinal = showBuildings
+    ? eventsHTML.replace(/<div class="bldg-slot" data-b="short"><\/div>/g, buildingSVG(false))
+                .replace(/<div class="bldg-slot" data-b="tall"><\/div>/g, buildingSVG(true))
+    : eventsHTML;
+
+  const body =
+'<div class="load" id="load"><div style="text-align:center">' +
+  '<div class="load__m">' + esc(d.groom.short.charAt(0)) + ' &amp; ' + esc(d.bride.short.charAt(0)) + '</div>' +
+  '<div class="load__b"><i></i></div></div></div>' +
+
+(cover === 'curtain' ? '<div class="cvt l" id="cvtL"></div><div class="cvt r" id="cvtR"></div>' : '') +
+(cover === 'petals' ? '<div class="ptl" id="ptl" aria-hidden="true"></div>' : '') +
+
+'<div class="cover' + (cover === 'envelope' ? ' env' : '') + (cover === 'satin' ? ' satin' : '') + (cover === 'rose' ? ' rose' : '') + '" id="cover"' +
+  (cover === 'rose' && (d.groom.photo || d.bride.photo) ? ' style="--coverimg:url(\'' + esc(d.bride.photo || d.groom.photo) + '\')"' : '') +
+  '><div class="frame">' +
+  (cover === 'satin' ? monogram() : '') +
+  (cover === 'rose' ? quatrefoil() : '') +
+  '<p class="scr">The wedding of</p>' +
+  '<h1 class="names cv__n"><span>' + esc(d.groom.short) + '</span><span class="and">and</span><span>' + esc(d.bride.short) + '</span></h1>' +
+  '<p class="cv__d">' + esc((d.events[0] && d.events[0].date) || '') + '</p>' +
+  '<div class="gst"><p class="gst__l">Invitation prepared for</p>' +
+  '<p class="gst__n" id="gname">' + esc(guestName) + '</p>' +
+  '<button class="btn" id="openBtn" type="button">Open Invitation</button></div>' +
+'</div></div>' +
+
+'<main class="paper">' +
+  topnavHTML +
+  openingHTML +
+  '<section class="sec center"><p class="lbl">' + esc(d.quote.source) + '</p>' +
+  '<div class="rule"><i></i></div>' +
+  '<blockquote class="vrs reveal">&ldquo;' + esc(d.quote.text) + '&rdquo;<cite>' + esc(d.quote.source) + '</cite></blockquote></section>' +
+
+  '<section class="sec" id="couple"><div class="center"><p class="lbl">The Couple</p>' +
+  '<h2 class="ttl">With the blessing<br>of our families</h2></div>' +
+  openCard +
+  '<div style="margin-top:44px">' + person(d.groom,'The Groom', d.groom.short.charAt(0)) +
+  '<p class="link">and</p>' + person(d.bride,'The Bride', d.bride.short.charAt(0)) + '</div>' +
+  closeCard + '</section>' +
+
+  '<section class="sec center" id="date"><p class="lbl">Save the Date</p>' +
+  '<h2 class="ttl">' + esc((d.events[0] && d.events[0].date) || '') + '</h2>' +
+  '<div class="cd" role="timer" aria-label="Time remaining">' +
+  '<div class="u"><b id="cdD">000</b><span>Days</span></div>' +
+  '<div class="u"><b id="cdH">00</b><span>Hours</span></div>' +
+  '<div class="u"><b id="cdM">00</b><span>Minutes</span></div>' +
+  '<div class="u"><b id="cdS">00</b><span>Seconds</span></div></div></section>' +
+
+  '<section class="sec" id="events"><div class="center"><p class="lbl">The Day</p>' +
+  '<div class="rule"><i></i></div></div><div style="margin-top:44px">' + eventsFinal + '</div>' +
+  rundownHTML +
+  '</section>' +
+
+  dressHTML +
+
+  hostsHTML +
+
+  (storyHTML ? '<section class="sec" id="story"><div class="center"><p class="lbl">Our Story</p>' +
+  '<h2 class="ttl">How we got here</h2></div><div style="margin-top:44px">' + storyHTML + '</div></section>' : '') +
+
+  (galleryHTML ? '<section class="sec" id="gallery"><div class="center"><p class="lbl">Gallery</p>' +
+  '<h2 class="ttl">Before the day</h2></div><div class="' + galClass + '" id="grid">' + galleryHTML + '</div></section>' : '') +
+
+  ticketHTML +
+
+  '<section class="sec" id="rsvp"><div class="center"><p class="lbl">Kindly Reply</p>' +
+  '<h2 class="ttl">Will you join us?</h2>' +
+  '<p class="lede">Please reply before ' + esc(d.rsvpDeadline) + ' so we can hold a seat for you.</p></div>' +
+  '<form id="rsvpForm" novalidate style="margin-top:44px" data-mode="' + rsvpStyle + '">' +
+  '<div class="f" id="fN"><label for="rN">Your name</label><input id="rN" type="text" value="' + esc(g ? g.name : '') + '" placeholder="As on your invitation"><p class="bad">Enter your name.</p></div>' +
+  (rsvpStyle === 'buttons' ?
+    /* button-based, Connectied style */
+    '<p class="rsvpq">Will you be attending?</p>' +
+    '<div class="rsvpbtns" data-group="attend">' +
+      '<button type="button" class="rbtn" data-val="yes">Attending</button>' +
+      '<button type="button" class="rbtn" data-val="no">Not Attending</button></div>' +
+    '<input type="hidden" id="rA">' +
+    '<p class="bad" id="fA" style="text-align:center;display:none">Please choose one.</p>' +
+    ((d.events || []).length > 1 ?
+      '<p class="rsvpq">Which event(s) will you attend?</p>' +
+      '<div class="rsvpbtns" data-group="which">' +
+        (d.events || []).map((e,i) => '<button type="button" class="rbtn" data-val="' + i + '">' + esc(e.kind) + '</button>').join('') +
+        '<button type="button" class="rbtn" data-val="both">Both</button></div>' +
+      '<input type="hidden" id="rW">' : '') +
+    '<p class="rsvpq">Number of guests</p>' +
+    '<div style="text-align:center"><select id="rP" style="max-width:120px;display:inline-block">' +
+    '<option>1</option><option>2</option><option>3</option><option>4</option></select></div>' +
+    '<div class="f" style="margin-top:26px"><label for="rM">A note for the couple</label><textarea id="rM" placeholder="Optional"></textarea></div>' +
+    '<div style="text-align:center"><button class="btn" type="submit">Submit</button></div>'
+  :
+    /* original dropdown form */
+    '<div class="f" id="fA"><label for="rA">Attendance</label><select id="rA">' +
+    '<option value="">Please choose</option><option value="yes">Joyfully accepts</option>' +
+    '<option value="maybe">Hoping to make it</option><option value="no">Regretfully declines</option>' +
+    '</select><p class="bad">Choose your attendance.</p></div>' +
+    '<div class="f"><label for="rP">Number of guests</label><select id="rP">' +
+    '<option>1</option><option>2</option><option>3</option><option>4</option></select></div>' +
+    '<div class="f"><label for="rM">A note for the couple</label><textarea id="rM" placeholder="Optional"></textarea></div>' +
+    '<button class="btn" type="submit">Send Reply</button>'
+  ) +
+  '<p class="sent" id="sent">Thank you. Your reply has been received.</p>' +
+  '<div class="tkt" id="tkt" hidden>' +
+    '<p class="tkt__lbl">Your Entry Pass</p>' +
+    '<p class="tkt__name" id="tktName"></p>' +
+    '<div class="tkt__qr" id="tktQR"></div>' +
+    '<p class="tkt__code" id="tktCode"></p>' +
+    '<button class="btn" type="button" id="tktDl">Download Ticket</button>' +
+    '<p class="tkt__hint">Save this to your phone and show it at the door.</p>' +
+  '</div>' +
+  '</form></section>' +
+
+  '<section class="sec" id="wishes"><div class="center"><p class="lbl">Notes Received</p>' +
+  '<h2 class="ttl">Messages</h2></div><div class="wshs" id="wList">' + wishesHTML + '</div></section>' +
+
+  '<section class="sec" id="gifts"><div class="center"><p class="lbl">With Gratitude</p>' +
+  '<h2 class="ttl">Wedding gifts</h2>' +
+  '<p class="lede">Your presence is gift enough. Should you wish to send something more, here is where to find us.</p></div>' +
+  '<div style="margin-top:44px">' + giftsHTML +
+  (d.giftAddress ? '<article class="acct" style="margin-top:32px;padding-top:32px;border-top:1px solid ' + t.rule + '">' +
+   '<p class="acct__b">Send a parcel</p><p class="acct__w" style="margin-top:11px">' + nl2br(d.giftAddress) + '</p></article>' : '') +
+  '</div></section>' +
+
+  '<section class="close"><p class="scr">Thank you</p>' +
+  '<p class="lede">' + esc(d.closing) + '</p>' +
+  '<h2 class="names close__n"><span>' + esc(d.groom.short) + '</span><span class="and">and</span><span>' + esc(d.bride.short) + '</span></h2>' +
+  '<p class="colo">Together with their families</p></section>' +
+'</main>' +
+
+(d.music ? '<audio id="song" loop preload="none"><source src="' + esc(d.music) + '"></audio>' : '') +
+'<div class="lb" id="lb"><button class="lbx" id="lbx" type="button" aria-label="Close">&times;</button><img id="lbi" src="" alt=""></div>' +
+'<div class="tst" id="tst" role="status" aria-live="polite"></div>';
+
+  const script =
+'(function(){var $=function(s){return document.querySelector(s)};' +
+'var TARGET=new Date("' + d.weddingISO + '").getTime();' +
+'var GUEST=' + JSON.stringify(g ? { id:g.id, code:g.code, name:g.name } : null) + ';' +
+'var RM=matchMedia("(prefers-reduced-motion: reduce)").matches;' +
+'var cover=$("#cover"),COVER="' + cover + '";' +
+'var ld=$("#load");' +
+'addEventListener("load",function(){setTimeout(function(){ld.classList.add("gone");' +
+  'setTimeout(function(){ld.setAttribute("hidden","")},700)},900)});' +
+'if(COVER==="petals"){var pw=$("#ptl");if(pw&&!RM){for(var i=0;i<16;i++){var pe=document.createElement("i");' +
+  'pe.style.left=(Math.random()*100)+"%";pe.style.animationDuration=(7+Math.random()*7)+"s";' +
+  'pe.style.animationDelay=(Math.random()*9)+"s";pw.appendChild(pe)}}}' +
+'$("#openBtn").addEventListener("click",function(){' +
+  'if(COVER==="curtain"){var a=$("#cvtL"),b=$("#cvtR");if(a)a.classList.add("go");if(b)b.classList.add("go")}' +
+  'cover.classList.add("open");document.body.classList.remove("lock");scrollTo(0,0);' +
+  'setTimeout(function(){cover.setAttribute("hidden","")},1100);' +
+  'var s=$("#song");if(s){s.play().catch(function(){})}' +
+  'var ev={type:"opened",guest:GUEST,at:new Date().toISOString()};' +
+  '/* TODO Supabase: sb.from("opens").insert(ev) */' +
+  'if(window.parent!==window){try{window.parent.postMessage(ev,"*")}catch(x){}}' +
+  'try{var K="wedding:opens";var L=JSON.parse(localStorage.getItem(K)||"[]");' +
+  'L.push(ev);localStorage.setItem(K,JSON.stringify(L.slice(-500)))}catch(x){}' +
+'});' +
+'document.body.classList.add("lock");' +
+'var QB=$("#qrb");' +
+'if(QB&&GUEST){var link=location.origin+location.pathname+"?ci="+GUEST.code;' +
+  'function paint(){if(!window.QRCode){QB.innerHTML=\'<span class="qrb__w">Scanner code unavailable.<br>Use the code below.</span>\';return}' +
+  'QB.innerHTML="";new window.QRCode(QB,{text:link,width:168,height:168,' +
+  'colorDark:"#000000",colorLight:"#ffffff",correctLevel:window.QRCode.CorrectLevel.M})}' +
+  'if(window.QRCode){paint()}else{addEventListener("load",paint)}}' +
+'function pad(n,l){l=l||2;return String(Math.max(0,n)).padStart(l,"0")}' +
+'function tick(){var df=TARGET-Date.now();if(df<=0){$("#cdD").textContent="000";$("#cdH").textContent=$("#cdM").textContent=$("#cdS").textContent="00";return}' +
+'var s=Math.floor(df/1000);$("#cdD").textContent=pad(Math.floor(s/86400),3);' +
+'$("#cdH").textContent=pad(Math.floor(s/3600)%24);$("#cdM").textContent=pad(Math.floor(s/60)%60);$("#cdS").textContent=pad(s%60)}' +
+'tick();setInterval(tick,1000);' +
+'var rv=[].slice.call(document.querySelectorAll(".reveal"));' +
+'if(RM){rv.forEach(function(e){e.classList.add("in")})}else{' +
+'var io=new IntersectionObserver(function(es){es.forEach(function(e,i){if(!e.isIntersecting)return;' +
+'e.target.style.transitionDelay=(i*100)+"ms";e.target.classList.add("in");io.unobserve(e.target)})},' +
+'{threshold:.15,rootMargin:"0px 0px -8% 0px"});rv.forEach(function(e){io.observe(e)})}' +
+'var tst=$("#tst"),tt;function say(m){tst.textContent=m;tst.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){tst.classList.remove("on")},2200)}' +
+'[].forEach.call(document.querySelectorAll("[data-copy]"),function(b){b.addEventListener("click",function(){' +
+'var v=$("#"+b.getAttribute("data-copy")).textContent.trim();' +
+'navigator.clipboard.writeText(v).then(function(){say("Number copied")}).catch(function(){say("Copy: "+v)})})});' +
+'var lb=$("#lb"),lbi=$("#lbi"),op=null;' +
+'[].forEach.call(document.querySelectorAll(".shot"),function(b){b.addEventListener("click",function(){' +
+'var im=b.querySelector("img");if(!im)return;op=b;lbi.src=im.src;lbi.alt=im.alt;lb.classList.add("on");document.body.classList.add("lock");$("#lbx").focus()})});' +
+'function cl(){lb.classList.remove("on");document.body.classList.remove("lock");if(op)op.focus()}' +
+'$("#lbx").addEventListener("click",cl);lb.addEventListener("click",function(e){if(e.target===lb)cl()});' +
+'addEventListener("keydown",function(e){if(e.key==="Escape"&&lb.classList.contains("on"))cl()});' +
+'var LBL={yes:"Accepts",maybe:"Hoping to",no:"Declines"};' +
+'[].forEach.call(document.querySelectorAll(".rsvpbtns"),function(grp){' +
+  'grp.addEventListener("click",function(e){var b=e.target.closest(".rbtn");if(!b)return;' +
+  '[].forEach.call(grp.querySelectorAll(".rbtn"),function(x){x.classList.remove("on")});' +
+  'b.classList.add("on");' +
+  'var which=grp.getAttribute("data-group");' +
+  'if(which==="attend"){$("#rA").value=b.getAttribute("data-val")}' +
+  'if(which==="which"&&$("#rW")){$("#rW").value=b.getAttribute("data-val")}})});' +
+'$("#rsvpForm").addEventListener("submit",function(e){e.preventDefault();' +
+'var n=$("#rN").value.trim(),a=$("#rA").value,p=$("#rP").value,m=$("#rM").value.trim();' +
+'var bad=!1;$("#fN").classList.toggle("err",!n);if(!n)bad=!0;' +
+'var fa=$("#fA");if(!a){bad=!0;if(fa){fa.style.display="block";fa.classList.add("err")}}else if(fa){fa.style.display="none";fa.classList.remove("err")}' +
+'if(bad){return}' +
+'var payload={guest:GUEST,name:n,attend:a,pax:p,message:m,at:new Date().toISOString()};' +
+'if($("#rW"))payload.which=$("#rW").value;' +
+'/* TODO Supabase: sb.from("rsvp").insert(payload) */' +
+'if(window.parent!==window){try{window.parent.postMessage({type:"rsvp",payload:payload},"*")}catch(x){}}' +
+'if(m){var el=document.createElement("article");el.className="wsh";' +
+'el.innerHTML=\'<div class="wsh__t"><span class="wsh__n"></span><span class="wsh__r"></span></div><p class="wsh__m"></p>\';' +
+'el.querySelector(".wsh__n").textContent=n;el.querySelector(".wsh__r").textContent=LBL[a];' +
+'el.querySelector(".wsh__m").textContent=m;$("#wList").insertBefore(el,$("#wList").firstChild)}' +
+'this.reset();[].forEach.call(document.querySelectorAll(".rbtn"),function(x){x.classList.remove("on")});' +
+'if($("#rA"))$("#rA").value="";' +
+'$("#sent").textContent=a==="no"?"Thank you for letting us know. We will miss you.":"Thank you. Your reply has been received.";' +
+'$("#sent").classList.add("on");' +
+// show QR entry ticket when attending
+'if(a!=="no"){var tkt=$("#tkt");if(tkt){' +
+  'var tcode=(GUEST&&GUEST.code)?GUEST.code:("G"+Math.abs(n.split("").reduce(function(h,c){return((h<<5)-h+c.charCodeAt(0))|0},0)).toString(36).toUpperCase().slice(0,5));' +
+  'var tlink=location.origin+location.pathname+"?ci="+tcode;' +
+  '$("#tktName").textContent=n;$("#tktCode").textContent=tcode;' +
+  'tkt.removeAttribute("hidden");' +
+  'function drawTkt(){if(!window.QRCode)return;var box=$("#tktQR");box.innerHTML="";' +
+    'new window.QRCode(box,{text:tlink,width:190,height:190,colorDark:"#000000",colorLight:"#ffffff",correctLevel:window.QRCode.CorrectLevel.M})}' +
+  'if(window.QRCode){drawTkt()}else{addEventListener("load",drawTkt)}' +
+  '$("#tktDl").addEventListener("click",function(){' +
+    'var img=$("#tktQR").querySelector("img")||$("#tktQR").querySelector("canvas");if(!img){say&&say("QR belum siap");return}' +
+    'var src=img.tagName==="CANVAS"?img.toDataURL("image/png"):img.src;' +
+    // compose a labeled ticket canvas: name + QR + code
+    'var c=document.createElement("canvas");c.width=520;c.height=680;var x=c.getContext("2d");' +
+    'x.fillStyle="#ffffff";x.fillRect(0,0,520,680);' +
+    'x.fillStyle="#111111";x.textAlign="center";' +
+    'x.font="600 20px Jost, sans-serif";x.fillText("ENTRY PASS",260,72);' +
+    'x.font="30px Georgia, serif";x.fillText(n,260,120);' +
+    'var qi=new Image();qi.onload=function(){x.drawImage(qi,110,160,300,300);' +
+      'x.font="600 34px Jost, sans-serif";x.fillText(tcode,260,520);' +
+      'x.font="16px Jost, sans-serif";x.fillStyle="#666";x.fillText("Show this at the door",260,560);' +
+      'var a2=document.createElement("a");a2.download="wedding-ticket-"+tcode+".png";a2.href=c.toDataURL("image/png");' +
+      'document.body.appendChild(a2);a2.click();a2.remove()};qi.src=src;' +
+  '})}}});' +
+'})();';
+
+  const og = d.og || {};
+  const ogTitle = og.title || (d.groom.short + ' & ' + d.bride.short);
+  const ogDesc  = og.desc  || ((d.events[0] && d.events[0].date) || '') +
+                  (d.events[1] ? ' — ' + d.events[1].venue : '');
+
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">' +
+    '<title>' + esc(ogTitle) + '</title>' +
+    '<meta name="description" content="' + esc(ogDesc) + '">' +
+    '<meta property="og:type" content="website">' +
+    '<meta property="og:title" content="' + esc(ogTitle) + '">' +
+    '<meta property="og:description" content="' + esc(ogDesc) + '">' +
+    (og.image ? '<meta property="og:image" content="' + esc(og.image) + '">' +
+                '<meta property="og:image:width" content="1200">' +
+                '<meta property="og:image:height" content="630">' +
+                '<meta name="twitter:card" content="summary_large_image">' +
+                '<meta name="twitter:image" content="' + esc(og.image) + '">' : '') +
+    '<meta name="theme-color" content="' + t.paper + '">' +
+    '<link rel="preconnect" href="https://fonts.googleapis.com">' +
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
+    '<link href="https://fonts.googleapis.com/css2?family=' + fs.q + '&display=swap" rel="stylesheet">' +
+    '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>' +
+    '<style>' + css + '</style></head><body>' + body +
+    '<script>' + script + '<\/script></body></html>';
+}
+
+/* ============================================================
+   7. MODE TAMU
+   ============================================================ */
+async function bootGuest(gcode){
+  await load();
+  const guest = S.guests.find(x => x.code === gcode) || null;
+  document.open();
+  document.write(renderInvitation(S.data, guest));
+  document.close();
+}
+
+/* ============================================================
+   8. ADMIN — VIEWS
+   ============================================================ */
+const NAV = [
+  ['dash','Dashboard','home'], ['stats','Statistik','chart'], ['content','Konten','edit'], ['theme','Template','theme'],
+  ['guests','Tamu','users'], ['rsvp','RSVP','check'], ['wishes','Ucapan','chat'],
+  ['checkin','Check-in','scan'], ['opens','Kunjungan','eye'], ['settings','Pengaturan','cog']
+];
+
+function shell(inner){
+  return '<div class="app"><aside class="side">' +
+    '<div class="brand">Wedding Studio<small>' + esc(S.data.meta.title) + '</small></div>' +
+    '<nav class="nav">' + NAV.map(n =>
+      '<button data-go="' + n[0] + '" class="' + (S.view === n[0] ? 'on' : '') + '">' +
+      icon(n[2]) + '<span>' + n[1] + '</span></button>').join('') + '</nav>' +
+    '<div class="side__foot">Penyimpanan: <b>' + Store.mode + '</b><br>Data tersimpan di perangkat ini sampai Supabase dipasang.</div>' +
+    '</aside><main class="main">' + inner + '</main></div>';
+}
+
+const stat = (n, l, cls) => '<div class="stat ' + (cls || '') + '"><div class="stat__n">' + n + '</div><div class="stat__l">' + l + '</div></div>';
+
+function viewStats(){
+  const g = S.guests;
+  const total = g.length;
+  const yes = g.filter(x => x.status === 'yes');
+  const no = g.filter(x => x.status === 'no');
+  const pending = g.filter(x => !x.status || x.status === 'pending');
+  const confirmed = yes.length + no.length;
+
+  // opens breakdown (from S.opens)
+  const openedIds = {};
+  (S.opens || []).forEach(o => { if (o.guest && o.guest.id) openedIds[o.guest.id] = true; });
+  const openedCount = pending.filter(x => openedIds[x.id]).length;
+
+  // per-event stats: a guest counts toward an event if which === index, 'both', or undefined (assume both when single/legacy)
+  const eventStat = (idx) => {
+    let pax = 0, waiting = 0, invs = 0, waitInvs = 0;
+    yes.forEach(x => {
+      const w = x.which;
+      const inEvent = (w === undefined || w === 'both' || String(w) === String(idx));
+      if (inEvent){ pax += (Number(x.pax) || 1); invs++; }
+    });
+    pending.forEach(x => { waiting += (Number(x.pax) || 1); waitInvs++; });
+    return { pax, invs, waiting, waitInvs };
+  };
+
+  const bar = (ev, idx) => {
+    const st = eventStat(idx);
+    const cap = Number(ev.capacity) || 0;
+    const usedPct = cap > 0 ? Math.min(100, Math.round(st.pax / cap * 100)) : 0;
+    const waitPct = cap > 0 ? Math.min(100 - usedPct, Math.round(st.waiting / cap * 100)) : 0;
+    const freePct = Math.max(0, 100 - usedPct - waitPct);
+    const free = cap - st.pax - st.waiting;
+    return '<div class="card"><div class="card__t" style="text-align:center;color:var(--ink)">' + esc(ev.kind) +
+      '</div><p style="text-align:center;color:var(--ink-3);margin:-8px 0 16px;font-size:13px">Kapasitas: ' +
+      (cap > 0 ? cap + ' pax' : 'belum diatur') + '</p>' +
+      (cap > 0 ?
+        '<div class="qbar">' +
+          (usedPct > 0 ? '<span class="qbar__used" style="width:' + usedPct + '%">' + (usedPct >= 12 ? usedPct + '%' : '') + '</span>' : '') +
+          (waitPct > 0 ? '<span class="qbar__wait" style="width:' + waitPct + '%">' + (waitPct >= 8 ? waitPct + '%' : '') + '</span>' : '') +
+          (freePct > 0 ? '<span class="qbar__free" style="width:' + freePct + '%">' + (freePct >= 10 ? freePct + '%' : '') + '</span>' : '') +
+        '</div>'
+        : '<p style="text-align:center;color:var(--ink-3);font-size:13px">Atur kapasitas di menu Konten untuk melihat bar kuota.</p>') +
+      '<div class="qleg">' +
+        '<div><b style="color:var(--ok)">' + st.pax + ' pax</b><span>Sudah RSVP<br>(' + st.invs + ' undangan)</span></div>' +
+        '<div><b style="color:var(--warn)">' + st.waiting + ' pax</b><span>Menunggu RSVP<br>(' + st.waitInvs + ' undangan)</span></div>' +
+        '<div><b style="color:' + (free < 0 ? 'var(--bad)' : 'var(--ink)') + '">' + (cap > 0 ? free + ' pax' : '-') + '</b><span>Kuota tersedia</span></div>' +
+      '</div></div>';
+  };
+
+  const summaryRow = (label, val, cls) =>
+    '<div class="srow"><span>' + label + '</span><b class="' + (cls || '') + '">' + val + '</b></div>';
+
+  return '<div class="head"><div><h1>Statistik <span style="color:var(--ink-3);font-weight:300">| ' + esc(S.data.meta.title) + '</span></h1>' +
+    '<p>Ringkasan lengkap RSVP dan kuota per acara. Diperbarui otomatis setiap ada jawaban masuk.</p></div>' +
+    '<button class="b b--line" data-excel>' + icon('down') + 'Ekspor Excel</button></div>' +
+
+    '<div class="grid g2" style="margin-bottom:16px">' +
+      // Invitation summary panel (dark green like Connectied)
+      '<div class="statpanel">' +
+        '<h3>Ringkasan Undangan</h3>' +
+        '<div class="srow srow--big"><span>Sudah konfirmasi RSVP / Total undangan</span>' +
+          '<b>' + confirmed + '/' + total + '</b></div>' +
+        summaryRow('Hadir', yes.length, 'big') +
+        summaryRow('Berhalangan', no.length, 'big') +
+        '<div class="srule"></div>' +
+        summaryRow('Belum RSVP', pending.length, 'big') +
+      '</div>' +
+      // Not-yet-responded breakdown
+      '<div class="card"><div class="card__t" style="color:var(--bad)">Belum melakukan RSVP <span style="float:right;font-size:26px;font-family:var(--fs)">' + pending.length + '</span></div>' +
+        summaryRow('Sudah membuka undangan', openedCount) +
+        summaryRow('Belum membuka', pending.length - openedCount) +
+        '<div class="srule"></div>' +
+        '<p style="margin:0;color:var(--ink-3);font-size:13px">Catatan buka undangan lengkap ada di menu <b>Kunjungan</b>. ' +
+        'Data lintas perangkat aktif setelah Supabase terpasang.</p>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="grid g2">' +
+      (g.length === 0
+        ? '<div class="card empty" style="grid-column:1/-1"><h3>Belum ada tamu</h3><p>Tambah daftar tamu dulu untuk melihat statistik per acara.</p></div>'
+        : (S.data.events || []).map((ev,i) => bar(ev,i)).join('')) +
+    '</div>';
+}
+
+function viewDash(){
+  const g = S.guests;
+  const yes = g.filter(x => x.status === 'yes');
+  const pax = yes.reduce((s,x) => s + (Number(x.pax) || 1), 0);
+  const inn = g.filter(x => x.checkedIn).length;
+  const pending = g.filter(x => !x.status || x.status === 'pending').length;
+
+  return '<div class="head"><div><h1>Dashboard</h1>' +
+    '<p>Ringkasan persiapan undangan. Angka diperbarui setiap ada RSVP masuk.</p></div>' +
+    '<button class="b" data-go="content">' + icon('edit') + 'Edit Konten</button></div>' +
+
+    (Store.mode === 'memory' ? '<div class="banner">' + icon('cog') +
+      '<div><b>Mode sementara.</b> Browser ini memblokir penyimpanan, jadi data hilang saat halaman ditutup. Pakai tombol <b>Ekspor Data</b> di Pengaturan untuk menyimpan, atau pasang Supabase.</div></div>' : '') +
+
+    '<div class="grid g4" style="margin-bottom:16px">' +
+      stat(g.length,'Total Tamu') +
+      stat(yes.length,'Konfirmasi Hadir','stat--ok') +
+      stat(pax,'Total Kursi') +
+      stat(inn,'Sudah Check-in') +
+    '</div>' +
+
+    '<div class="grid g2">' +
+      '<div class="card"><div class="card__t">Langkah Berikutnya</div>' +
+      '<ol style="margin:0;padding-left:18px;color:var(--ink-2);line-height:2">' +
+        '<li>Isi <b>Konten</b> — nama, orang tua, acara, rekening</li>' +
+        '<li>Pilih <b>Template</b> dan lihat pratinjaunya</li>' +
+        '<li>Tambah daftar <b>Tamu</b>, salin link personalnya</li>' +
+        '<li>Pantau <b>RSVP</b>, ekspor ke Excel</li>' +
+        '<li>Hari-H: buka <b>Check-in</b> di HP penerima tamu</li>' +
+      '</ol></div>' +
+      '<div class="card"><div class="card__t">Status</div>' +
+      '<p style="margin:0 0 14px;color:var(--ink-2)">' + pending + ' tamu belum menjawab. ' +
+      (S.wishes.length ? S.wishes.length + ' ucapan masuk.' : 'Belum ada ucapan.') + '</p>' +
+      '<div class="row"><button class="b b--line" data-go="guests">' + icon('users') + 'Kelola Tamu</button>' +
+      '<button class="b b--line" data-preview>' + icon('eye') + 'Pratinjau</button></div></div>' +
+    '</div>';
+}
+
+function fld(label, path, type, hint){
+  const v = path.split('.').reduce((o,k) => (o || {})[k], S.data);
+  const h = hint ? '<p class="hint">' + esc(hint) + '</p>' : '';
+
+  if (type === 'area')
+    return '<div class="f"><label>' + label + '</label><textarea data-path="' + path + '">' + esc(v || '') + '</textarea>' + h + '</div>';
+
+  if (type === 'photo'){
+    const has = v && String(v).length > 4;
+    return '<div class="f"><label>' + label + '</label>' +
+      '<div class="ph">' +
+        (has ? '<img class="ph__t" src="' + esc(v) + '" alt="Pratinjau">'
+             : '<div class="ph__t ph__e">Belum ada</div>') +
+        '<div class="ph__a"><button class="b b--line b--sm" data-pick="' + path + '">' + icon('plus') + 'Unggah Foto</button>' +
+        (has ? '<button class="b b--sm b--bad" data-clear="' + path + '">' + icon('trash') + 'Hapus</button>' : '') +
+        '<p class="hint" style="margin:0">Otomatis dikecilkan ke maks 1400px. ' +
+        (has ? Math.round(String(v).length / 1400) + ' KB tersimpan.' : 'JPG atau PNG.') + '</p></div>' +
+      '</div>' + h + '</div>';
+  }
+
+  return '<div class="f"><label>' + label + '</label><input type="' + (type || 'text') + '" data-path="' + path + '" value="' + esc(v || '') + '">' + h + '</div>';
+}
+
+/* Unggah + kompresi di sisi browser — tidak perlu server */
+function pickImage(cb, maxW){
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*';
+  inp.addEventListener('change', () => {
+    const f = inp.files && inp.files[0];
+    if (!f) return;
+    if (!/^image\//.test(f.type)) { toast('Berkas itu bukan gambar.'); return; }
+    toast('Memproses gambar...');
+    const r = new FileReader();
+    r.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const lim = maxW || 1400;
+        const scale = Math.min(1, lim / img.width);
+        const c = document.createElement('canvas');
+        c.width  = Math.round(img.width  * scale);
+        c.height = Math.round(img.height * scale);
+        const x = c.getContext('2d');
+        x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+        x.drawImage(img, 0, 0, c.width, c.height);
+        let out = c.toDataURL('image/jpeg', 0.74);
+        if (out.length > 900000) out = c.toDataURL('image/jpeg', 0.58);
+        cb(out);
+      };
+      img.onerror = () => toast('Gambar tidak terbaca.');
+      img.src = String(r.result);
+    };
+    r.readAsDataURL(f);
+  });
+  inp.click();
+}
+
+function viewContent(){
+  const ev = S.data.events.map((e,i) =>
+    '<div class="item"><div class="item__h"><strong>Acara ' + (i+1) + '</strong>' +
+    '<button class="b b--sm b--bad" data-del="events:' + i + '">' + icon('trash') + 'Hapus</button></div>' +
+    '<div class="grid g2">' + fld('Jenis','events.' + i + '.kind') + fld('Tanggal (teks)','events.' + i + '.date') + '</div>' +
+    '<div class="grid g2">' + fld('Waktu','events.' + i + '.time') + fld('Tempat','events.' + i + '.venue') + '</div>' +
+    fld('Alamat','events.' + i + '.address') + fld('Link Google Maps','events.' + i + '.maps','url') +
+    fld('Kapasitas (pax) — untuk statistik kuota','events.' + i + '.capacity','number','Isi 0 kalau tidak ingin melacak kuota acara ini.') + '</div>').join('');
+
+  const st = S.data.story.map((s,i) =>
+    '<div class="item"><div class="item__h"><strong>Babak ' + (i+1) + '</strong>' +
+    '<button class="b b--sm b--bad" data-del="story:' + i + '">' + icon('trash') + 'Hapus</button></div>' +
+    '<div class="grid g2">' + fld('Tahun','story.' + i + '.year') + fld('Judul','story.' + i + '.title') + '</div>' +
+    fld('Cerita','story.' + i + '.text','area') + '</div>').join('');
+
+  const gf = S.data.gifts.map((a,i) =>
+    '<div class="item"><div class="item__h"><strong>Rekening ' + (i+1) + '</strong>' +
+    '<button class="b b--sm b--bad" data-del="gifts:' + i + '">' + icon('trash') + 'Hapus</button></div>' +
+    '<div class="grid g3">' + fld('Bank','gifts.' + i + '.bank') + fld('Nomor','gifts.' + i + '.number') + fld('Atas Nama','gifts.' + i + '.holder') + '</div></div>').join('');
+
+  const gal = (S.data.gallery || []).map((u,i) =>
+    '<div class="item"><div class="item__h"><strong>Foto ' + (i+1) + (i === 0 ? ' (tampil melebar)' : '') + '</strong>' +
+    '<button class="b b--sm b--bad" data-del="gallery:' + i + '">' + icon('trash') + 'Hapus</button></div>' +
+    fld('Gambar','gallery.' + i,'photo') + '</div>').join('');
+
+  const rd = (S.data.rundown || []).map((r,i) =>
+    '<div class="item"><div class="item__h"><strong>Baris ' + (i+1) + '</strong>' +
+    '<button class="b b--sm b--bad" data-del="rundown:' + i + '">' + icon('trash') + 'Hapus</button></div>' +
+    '<div class="grid g2">' + fld('Jam','rundown.' + i + '.time') + fld('Kegiatan','rundown.' + i + '.item') + '</div></div>').join('');
+
+  const hs = (S.data.hosts || []).map((h,i) =>
+    '<div class="item"><div class="item__h"><strong>Nama ' + (i+1) + '</strong>' +
+    '<button class="b b--sm b--bad" data-del="hosts:' + i + '">' + icon('trash') + 'Hapus</button></div>' +
+    fld('Nama keluarga / kerabat','hosts.' + i) + '</div>').join('');
+
+  return '<div class="head"><div><h1>Konten Undangan</h1>' +
+    '<p>Semua isi undangan diatur di sini. Perubahan tersimpan otomatis saat Anda pindah kolom.</p></div>' +
+    '<button class="b b--line" data-preview>' + icon('eye') + 'Pratinjau</button></div>' +
+
+    '<div class="card"><div class="card__t">Salam Pembuka</div>' +
+      fld('Salam / seruan','opening.greeting','text','Contoh: To God be the glory, atau Soli Deo Gloria') +
+      fld('Kalimat pengantar','opening.text','area') + '</div>' +
+
+    '<div class="card"><div class="card__t">Mempelai Pria</div><div class="grid g2">' +
+      fld('Nama panggilan','groom.short') + fld('Nama lengkap','groom.full') + '</div>' +
+      fld('Anak ke-','groom.order','text','Contoh: First son of') + '<div class="grid g2">' +
+      fld('Ayah','groom.father') + fld('Ibu','groom.mother') + '</div>' +
+      fld('Instagram (tanpa @)','groom.ig') +
+      fld('Foto','groom.photo','photo') + '</div>' +
+
+    '<div class="card"><div class="card__t">Mempelai Wanita</div><div class="grid g2">' +
+      fld('Nama panggilan','bride.short') + fld('Nama lengkap','bride.full') + '</div>' +
+      fld('Anak ke-','bride.order','text','Contoh: Second daughter of') + '<div class="grid g2">' +
+      fld('Ayah','bride.father') + fld('Ibu','bride.mother') + '</div>' +
+      fld('Instagram (tanpa @)','bride.ig') +
+      fld('Foto','bride.photo','photo') + '</div>' +
+
+    '<div class="card"><div class="card__t">Waktu &amp; Ayat</div><div class="grid g2">' +
+      fld('Waktu acara (ISO, untuk hitung mundur)','weddingISO','text','Contoh: 2026-11-14T09:00:00+07:00') +
+      fld('Batas RSVP','rsvpDeadline','date') + '</div>' +
+      fld('Kutipan / ayat','quote.text','area') + fld('Sumber kutipan','quote.source') + '</div>' +
+
+    '<div class="card"><div class="card__t">Acara</div>' + ev +
+      '<button class="b b--line" data-add="events">' + icon('plus') + 'Tambah Acara</button></div>' +
+
+    '<div class="card"><div class="card__t">Perjalanan</div>' + st +
+      '<button class="b b--line" data-add="story">' + icon('plus') + 'Tambah Babak</button></div>' +
+
+    '<div class="card"><div class="card__t">Susunan Acara</div>' + rd +
+      '<button class="b b--line" data-add="rundown">' + icon('plus') + 'Tambah Baris</button></div>' +
+
+    '<div class="card"><div class="card__t">Turut Mengundang</div>' +
+      '<p style="margin:-6px 0 14px;color:var(--ink-2)">Keluarga atau kerabat yang ikut mengundang. ' +
+      'Kosongkan semua bila bagian ini tidak dipakai.</p>' + hs +
+      '<button class="b b--line" data-add="hosts">' + icon('plus') + 'Tambah Nama</button></div>' +
+
+    '<div class="card"><div class="card__t">Galeri</div>' + (gal || '<p style="color:var(--ink-3);margin:0 0 14px">Belum ada foto.</p>') +
+      '<button class="b b--line" data-add="gallery">' + icon('plus') + 'Tambah Foto</button></div>' +
+
+    '<div class="card"><div class="card__t">Pratinjau WhatsApp</div>' +
+      '<p style="margin:-6px 0 14px;color:var(--ink-2)">Yang muncul saat link dikirim di WhatsApp, Telegram, atau Instagram. ' +
+      'Gambar sebaiknya 1200&times;630 piksel.</p>' +
+      '<div class="grid g2">' + fld('Judul','og.title','text','Kosong = nama mempelai') +
+      fld('Keterangan','og.desc','text','Kosong = tanggal acara') + '</div>' +
+      fld('Gambar pratinjau','og.image','photo') +
+      '<div class="wa"><div class="wa__b"><div class="wa__c">' +
+        ((S.data.og && S.data.og.image) ? '<img src="' + esc(S.data.og.image) + '" alt="">' : '<div class="wa__ph">Tanpa gambar</div>') +
+        '<div class="wa__x"><b>' + esc((S.data.og && S.data.og.title) || (S.data.groom.short + ' & ' + S.data.bride.short)) + '</b>' +
+        '<span>' + esc((S.data.og && S.data.og.desc) || (S.data.events[0] && S.data.events[0].date) || '') + '</span>' +
+        '<i>undangan-anda.vercel.app</i></div></div>' +
+        '<p>Kira-kira begini tampilannya di chat.</p></div></div>' +
+      '<p class="hint" style="margin-top:12px">Preview hanya tampil kalau undangan sudah online (Vercel/Netlify). ' +
+      'Dari berkas lokal, WhatsApp tidak bisa membacanya.</p></div>' +
+
+    '<div class="card"><div class="card__t">Hadiah</div>' + gf +
+      '<button class="b b--line" data-add="gifts">' + icon('plus') + 'Tambah Rekening</button>' +
+      '<div style="margin-top:16px">' + fld('Alamat kirim hadiah','giftAddress','area') + '</div></div>' +
+
+    '<div class="card"><div class="card__t">Lain-lain</div>' +
+      fld('Dress code / catatan','dress','area') +
+      fld('Kalimat penutup','closing','area') +
+      fld('URL musik latar (mp3)','music','url','Kosongkan bila tidak pakai musik.') + '</div>';
+}
+
+function viewTheme(){
+  const cards = Object.keys(THEMES).map(k => {
+    const t = k === 'custom' ? Object.assign({}, THEMES.custom, S.data.meta.customTheme || {}) : THEMES[k];
+    return '<button class="theme ' + (S.data.meta.theme === k ? 'on' : '') + '" data-theme="' + k + '">' +
+      '<div class="theme__sw" style="background:' + t.paper + ';color:' + t.accent + '">' + esc(S.data.groom.short.charAt(0)) + ' &amp; ' + esc(S.data.bride.short.charAt(0)) + '</div>' +
+      '<div class="theme__m"><b>' + THEMES[k].name + '</b><span>' + THEMES[k].note + '</span></div></button>';
+  }).join('');
+
+  const isCustom = S.data.meta.theme === 'custom';
+  const ct = Object.assign({}, THEMES.custom, S.data.meta.customTheme || {});
+  const colorRow = (label, key) =>
+    '<div class="f"><label>' + label + '</label>' +
+    '<input type="color" data-path="meta.customTheme.' + key + '" value="' + esc(ct[key]) + '"></div>';
+
+  const customEditor = isCustom ?
+    '<div class="card"><div class="card__t">Sesuaikan Warna &amp; Font</div>' +
+    '<div class="grid g4">' +
+      colorRow('Latar kertas', 'paper') + colorRow('Latar kedua', 'paper2') +
+      colorRow('Warna teks', 'ink') + colorRow('Aksen / emas', 'accent') +
+    '</div>' +
+    '<div class="f"><label>Pasangan font</label><select data-path="meta.customTheme.font">' +
+      Object.keys(FONTSETS).map(k => '<option value="' + k + '"' + (ct.font === k ? ' selected' : '') + '>' +
+        esc(FONTLABEL[k] || k) + '</option>').join('') + '</select></div>' +
+    '<p class="hint">Warna teks lembut dan warna redup ikut dihitung otomatis dari warna teks di atas.</p></div>' : '';
+
+  return '<div class="head"><div><h1>Template</h1>' +
+    '<p>Satu konten, banyak tampilan. Ganti kapan saja tanpa mengetik ulang apa pun.</p></div></div>' +
+    '<div class="card"><div class="card__t">Pilih Tampilan</div><div class="themes">' + cards + '</div></div>' +
+
+    customEditor +
+
+    '<div class="card"><div class="card__t">Animasi Pembuka</div>' +
+    '<div class="themes">' + Object.keys(COVERS).map(k =>
+      '<button class="theme ' + ((S.data.meta.cover || 'fade') === k ? 'on' : '') + '" data-cover="' + k + '">' +
+      '<div class="theme__m" style="padding:14px 13px"><b>' + COVERS[k].name + '</b>' +
+      '<span>' + COVERS[k].note + '</span></div></button>').join('') + '</div>' +
+    '<p class="hint" style="margin-top:12px">Klik <b>Buka di Tab Baru</b> untuk melihat animasinya berjalan penuh.</p></div>' +
+
+    '<div class="card"><div class="card__t">Tata Letak</div><div class="grid g2">' +
+      '<div class="f"><label>Galeri</label><select data-path="meta.gallery">' +
+        '<option value="grid"' + (S.data.meta.gallery !== 'masonry' ? ' selected' : '') + '>Kotak rapi (grid)</option>' +
+        '<option value="masonry"' + (S.data.meta.gallery === 'masonry' ? ' selected' : '') + '>Masonry (tinggi tidak rata)</option>' +
+      '</select></div>' +
+      '<div class="f"><label>Navigasi</label><select data-path="meta.nav">' +
+        '<option value="none"' + (S.data.meta.nav !== 'top' ? ' selected' : '') + '>Tanpa menu</option>' +
+        '<option value="top"' + (S.data.meta.nav === 'top' ? ' selected' : '') + '>Menu di atas</option>' +
+      '</select></div>' +
+      '<div class="f"><label>Bingkai kartu</label><select data-path="meta.card">' +
+        '<option value="plain"' + (S.data.meta.card !== 'framed' ? ' selected' : '') + '>Polos</option>' +
+        '<option value="framed"' + (S.data.meta.card === 'framed' ? ' selected' : '') + '>Kartu berukir (sudut lengkung)</option>' +
+      '</select></div>' +
+      '<div class="f"><label>Gaya RSVP</label><select data-path="meta.rsvp">' +
+        '<option value="form"' + (S.data.meta.rsvp !== 'buttons' ? ' selected' : '') + '>Dropdown biasa</option>' +
+        '<option value="buttons"' + (S.data.meta.rsvp === 'buttons' ? ' selected' : '') + '>Tombol (Attending / Not)</option>' +
+      '</select></div></div></div>' +
+
+    '<div class="card"><div class="card__t">Pratinjau Langsung</div>' +
+    '<div class="preview"><iframe id="pv" title="Pratinjau undangan"></iframe></div>' +
+    '<div class="row" style="margin-top:14px">' +
+    '<button class="b" data-export>' + icon('down') + 'Unduh Undangan (HTML)</button>' +
+    '<button class="b b--line" data-preview>' + icon('eye') + 'Buka di Tab Baru</button></div></div>';
+}
+
+function viewGuests(){
+  if (!S.gl) S.gl = { q:'', status:'', group:'', page:1, per:20 };
+  const gl = S.gl;
+
+  // distinct groups for the filter dropdown
+  const groups = [];
+  S.guests.forEach(g => { if (g.group && groups.indexOf(g.group) < 0) groups.push(g.group); });
+
+  // apply filters
+  let list = S.guests.filter(g => {
+    if (gl.status && (g.status || 'pending') !== gl.status) return false;
+    if (gl.group && (g.group || '') !== gl.group) return false;
+    if (gl.q){
+      const q = gl.q.toLowerCase();
+      const hay = (g.name + ' ' + g.code + ' ' + (g.phone || '') + ' ' + (g.group || '')).toLowerCase();
+      if (hay.indexOf(q) < 0) return false;
+    }
+    return true;
+  });
+
+  const totalItems = list.length;
+  const pages = Math.max(1, Math.ceil(totalItems / gl.per));
+  if (gl.page > pages) gl.page = pages;
+  const start = (gl.page - 1) * gl.per;
+  const pageRows = list.slice(start, start + gl.per);
+
+  const waBadge = (s) => {
+    if (!s) return '<span class="tag tag--idle">—</span>';
+    const cls = ({ Read:'wa--read', Opened:'wa--open', Delivered:'wa--deliv', Sent:'wa--sent', Failed:'wa--fail', New:'tag--idle' })[s] || 'tag--idle';
+    return '<span class="tag ' + cls + '">' + esc(s) + '</span>';
+  };
+
+  const rows = pageRows.map(g =>
+    '<tr data-guest="' + g.id + '">' +
+    '<td class="mono">' + esc(g.code) + '</td>' +
+    '<td><button class="b b--line b--sm" data-wa="' + g.id + '" title="Kirim WhatsApp">' + icon('chat') + '</button></td>' +
+    '<td><b>' + esc(g.name) + '</b>' + (g.group ? '<br><span style="color:var(--ink-3);font-size:12px">' + esc(g.group) + (g.group2 ? ' · ' + esc(g.group2) : '') + '</span>' : '') + '</td>' +
+    '<td style="color:var(--ink-2)">' + esc(g.phone || '-') + '</td>' +
+    '<td>' + statusTag(g.status) + '</td>' +
+    '<td>' + waBadge(g.waStatus) + '</td>' +
+    '<td class="num">' + (g.pax || 1) + '</td>' +
+    '<td class="num">' + esc(g.table || '-') + '</td>' +
+    '<td>' + (g.checkedIn ? '<span class="tag tag--ok">Hadir</span>' : '<span class="tag tag--idle">Belum</span>') + '</td>' +
+    '</tr>').join('');
+
+  const statusOpts = [['','Semua status'],['pending','Belum jawab'],['yes','Hadir'],['maybe','Diusahakan'],['no','Berhalangan']]
+    .map(o => '<option value="' + o[0] + '"' + (gl.status === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('');
+  const groupOpts = ['<option value="">Semua grup</option>'].concat(
+    groups.map(gr => '<option value="' + esc(gr) + '"' + (gl.group === gr ? ' selected' : '') + '>' + esc(gr) + '</option>')).join('');
+
+  return '<div class="head"><div><h1>Tamu <span style="color:var(--ink-3);font-weight:300">| ' + totalItems + ' orang</span></h1>' +
+    '<p>Cari, saring, dan kelola daftar tamu. Klik baris untuk link & pengaturan; tombol chat untuk WhatsApp.</p></div>' +
+    '<div class="row"><button class="b b--line" data-import>' + icon('plus') + 'Impor</button>' +
+    '<button class="b" data-newguest>' + icon('plus') + 'Tambah Tamu</button></div></div>' +
+
+    // toolbar: search + filters
+    '<div class="glbar">' +
+      '<input id="glq" type="search" placeholder="Cari nama, kode, telepon..." value="' + esc(gl.q) + '" autocomplete="off">' +
+      '<select id="glstatus">' + statusOpts + '</select>' +
+      (groups.length ? '<select id="glgroup">' + groupOpts + '</select>' : '') +
+    '</div>' +
+
+    (S.guests.length ?
+      (totalItems ?
+        '<div class="wrap"><table><thead><tr>' +
+        '<th>Kode</th><th>WA</th><th>Nama</th><th>Telepon</th><th>RSVP</th>' +
+        '<th>Status WA</th><th class="num">Pax</th><th class="num">Meja</th><th>Check-in</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+        // pagination
+        '<div class="glpage">' +
+          '<span>' + (start + 1) + '\u2013' + Math.min(start + gl.per, totalItems) + ' dari ' + totalItems + '</span>' +
+          '<div class="row">' +
+            '<button class="b b--line b--sm" data-glpage="prev"' + (gl.page <= 1 ? ' disabled' : '') + '>&larr;</button>' +
+            '<span style="padding:0 10px">Hal. ' + gl.page + ' / ' + pages + '</span>' +
+            '<button class="b b--line b--sm" data-glpage="next"' + (gl.page >= pages ? ' disabled' : '') + '>&rarr;</button>' +
+          '</div>' +
+        '</div>'
+        : '<div class="card empty"><h3>Tidak ada yang cocok</h3><p>Coba ubah kata kunci atau filter.</p></div>')
+      : '<div class="card empty"><h3>Belum ada tamu</h3>' +
+        '<p>Tambah satu per satu, atau tempel seluruh daftar sekaligus lewat Impor.</p>' +
+        '<button class="b" data-import style="margin-top:10px">' + icon('plus') + 'Impor Daftar</button></div>');
+}
+
+function statusTag(s){
+  if (s === 'yes')   return '<span class="tag tag--ok">Hadir</span>';
+  if (s === 'maybe') return '<span class="tag tag--warn">Diusahakan</span>';
+  if (s === 'no')    return '<span class="tag tag--bad">Berhalangan</span>';
+  return '<span class="tag tag--idle">Belum jawab</span>';
+}
+
+function viewRsvp(){
+  const g = S.guests;
+  const by = (s) => g.filter(x => x.status === s);
+  const pax = by('yes').reduce((s,x) => s + (Number(x.pax) || 1), 0);
+  const answered = g.filter(x => x.status && x.status !== 'pending');
+
+  const rows = answered.map(x =>
+    '<tr data-guest="' + x.id + '"><td><b>' + esc(x.name) + '</b></td>' +
+    '<td>' + statusTag(x.status) + '</td><td class="num">' + (x.pax || 1) + '</td>' +
+    '<td style="color:var(--ink-2);max-width:280px">' + esc(x.note || '-') + '</td></tr>').join('');
+
+  return '<div class="head"><div><h1>RSVP</h1>' +
+    '<p>Rekap jawaban tamu. Ekspor ke Excel untuk dibagikan ke katering atau WO.</p></div>' +
+    '<button class="b" data-excel>' + icon('down') + 'Ekspor Excel</button></div>' +
+
+    '<div class="grid g4" style="margin-bottom:16px">' +
+      stat(by('yes').length,'Hadir','stat--ok') +
+      stat(by('maybe').length,'Diusahakan','stat--warn') +
+      stat(by('no').length,'Berhalangan','stat--bad') +
+      stat(pax,'Total Kursi') +
+    '</div>' +
+
+    (answered.length ?
+      '<div class="wrap"><table><thead><tr><th>Nama</th><th>Status</th>' +
+      '<th class="num">Pax</th><th>Catatan</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+      : '<div class="card empty"><h3>Belum ada jawaban</h3>' +
+        '<p>Jawaban akan muncul di sini setelah tamu mengisi RSVP.<br>' +
+        'Untuk sekarang, Anda juga bisa mengisikannya manual dari halaman Tamu.</p></div>');
+}
+
+function viewWishes(){
+  if (!S.wm) S.wm = { q:'', approval:'all', privacy:'all' };
+  const wm = S.wm;
+
+  if (!S.wishes.length)
+    return '<div class="head"><div><h1>Ucapan Tamu</h1><p>Pesan dari tamu, bisa disetujui/sembunyikan sebelum tampil di undangan.</p></div></div>' +
+      '<div class="card empty"><h3>Belum ada ucapan</h3><p>Ucapan yang dikirim tamu akan muncul di sini sebagai kartu untuk Anda saring.</p></div>';
+
+  // normalise legacy fields: status 'hidden' -> pending; default approved+public
+  const norm = (w) => ({
+    approved: w.approval ? w.approval === 'approved' : (w.status !== 'hidden'),
+    privacy: w.privacy || 'public'
+  });
+
+  let list = S.wishes.filter(w => {
+    const nn = norm(w);
+    if (wm.approval === 'approved' && !nn.approved) return false;
+    if (wm.approval === 'pending' && nn.approved) return false;
+    if (wm.privacy === 'public' && nn.privacy !== 'public') return false;
+    if (wm.privacy === 'private' && nn.privacy !== 'private') return false;
+    if (wm.q){ const q = wm.q.toLowerCase();
+      if ((w.name + ' ' + w.message).toLowerCase().indexOf(q) < 0) return false; }
+    return true;
+  });
+
+  const seg = (group, val, label, cur) =>
+    '<button class="seg ' + (cur === val ? 'on' : '') + '" data-wfilter="' + group + ':' + val + '">' + label + '</button>';
+
+  const cards = list.map(w => {
+    const nn = norm(w);
+    return '<div class="wcard">' +
+      '<button class="wcard__x" data-del-wish="' + w.id + '" title="Hapus">&times;</button>' +
+      '<div class="wcard__q">&ldquo;</div>' +
+      '<p class="wcard__m">' + esc(w.message) + '</p>' +
+      '<div class="wcard__f">' +
+        '<span class="wcard__n">' + esc(w.name) + '</span>' +
+        '<div class="wcard__b">' +
+          '<span class="tag ' + (nn.approved ? 'tag--ok' : 'tag--warn') + '">' + (nn.approved ? 'Approved' : 'Pending') + '</span>' +
+          '<span class="tag tag--idle">' + (nn.privacy === 'private' ? 'Private' : 'Public') + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="wcard__act">' +
+        '<button class="b b--sm ' + (nn.approved ? 'b--line' : '') + '" data-wapprove="' + w.id + '">' + (nn.approved ? 'Jadikan Pending' : 'Setujui') + '</button>' +
+        '<button class="b b--sm b--line" data-wprivacy="' + w.id + '">' + (nn.privacy === 'private' ? 'Jadikan Public' : 'Jadikan Private') + '</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  return '<div class="head"><div><h1>Ucapan Tamu <span style="color:var(--ink-3);font-weight:300">| ' + S.wishes.length + ' pesan</span></h1>' +
+    '<p>Hanya ucapan <b>Approved + Public</b> yang tampil di undangan tamu. Pending atau Private disembunyikan.</p></div></div>' +
+
+    '<div class="card" style="padding:14px 16px">' +
+      '<div class="f" style="margin:0 0 12px"><input id="wq" type="search" placeholder="Cari ucapan atau nama..." value="' + esc(wm.q) + '" autocomplete="off"></div>' +
+      '<div class="segwrap">' +
+        '<div class="segrow">' + seg('approval','all','Semua',wm.approval) + seg('approval','approved','Approved',wm.approval) + seg('approval','pending','Pending',wm.approval) + '</div>' +
+        '<div class="segrow">' + seg('privacy','all','All',wm.privacy) + seg('privacy','public','Public',wm.privacy) + seg('privacy','private','Private',wm.privacy) + '</div>' +
+      '</div>' +
+    '</div>' +
+
+    (list.length ? '<div class="wgrid">' + cards + '</div>'
+      : '<div class="card empty"><h3>Tidak ada yang cocok</h3><p>Ubah filter atau kata kunci.</p></div>');
+}
+
+function viewCheckin(){
+  const inn = S.guests.filter(x => x.checkedIn);
+  const rows = S.guests.slice(0,200).map(g =>
+    '<tr data-checkin="' + g.id + '"><td><b>' + esc(g.name) + '</b></td>' +
+    '<td class="mono">' + esc(g.code) + '</td><td class="num">' + (g.pax || 1) + '</td>' +
+    '<td>' + (g.checkedIn ? '<span class="tag tag--ok">Hadir</span>' : '<span class="tag tag--idle">Tap untuk check-in</span>') + '</td></tr>').join('');
+
+  return '<div class="head"><div><h1>Check-in</h1>' +
+    '<p>Pindai QR di layar tamu, atau cari namanya kalau QR bermasalah. ' +
+    'Buka halaman ini di HP penerima tamu saat hari-H.</p></div>' +
+    '<div>' + stat('<span id="ciCount">' + inn.length + ' / ' + S.guests.length + '</span>','Sudah Masuk','stat--ok') + '</div></div>' +
+
+    '<div class="card"><div class="card__t">Pindai QR</div>' +
+    '<div class="row" style="margin-bottom:14px">' +
+      '<button class="b" data-scan>' + icon('scan') + 'Nyalakan Kamera</button>' +
+      '<button class="b b--line" data-stopscan>Berhenti</button></div>' +
+    '<div id="reader" class="reader"></div>' +
+    '<p id="scanState" class="hint" style="margin-top:12px">Kamera belum aktif.</p>' +
+    '<p class="hint">Kamera hanya bisa dibuka lewat alamat https. Dari berkas lokal, ' +
+    'pakai kamera bawaan HP untuk memindai — QR tamu berisi tautan yang langsung membuka check-in di sini.</p></div>' +
+
+    '<div class="card"><div class="f" style="margin:0">' +
+    '<label for="q">Atau cari nama / kode</label>' +
+    '<input id="q" type="search" placeholder="Ketik nama atau kode tamu" autocomplete="off"></div></div>' +
+
+    (S.guests.length ?
+      '<div class="wrap"><table><thead><tr><th>Nama</th><th>Kode</th>' +
+      '<th class="num">Pax</th><th>Status</th></tr></thead><tbody id="ciBody">' + rows + '</tbody></table></div>'
+      : '<div class="card empty"><h3>Belum ada tamu</h3><p>Tambah daftar tamu dulu di halaman Tamu.</p></div>');
+}
+
+function viewOpens(){
+  const opens = S.opens || [];
+  const byGuest = {};
+  opens.forEach(o => {
+    const id = (o.guest && o.guest.id) || 'anon';
+    if (!byGuest[id]) byGuest[id] = { n:0, last:o.at, name:(o.guest && o.guest.name) || 'Tanpa nama' };
+    byGuest[id].n++;
+    if (o.at > byGuest[id].last) byGuest[id].last = o.at;
+  });
+  const seen = Object.keys(byGuest).filter(k => k !== 'anon');
+  const unopened = S.guests.filter(g => !byGuest[g.id]);
+
+  const fmt = (s) => { try { return new Date(s).toLocaleString('id-ID', { dateStyle:'medium', timeStyle:'short' }); } catch(e){ return s; } };
+
+  const rows = Object.keys(byGuest).map(k =>
+    '<tr><td><b>' + esc(byGuest[k].name) + '</b></td>' +
+    '<td class="num">' + byGuest[k].n + '</td>' +
+    '<td style="color:var(--ink-2)">' + esc(fmt(byGuest[k].last)) + '</td></tr>').join('');
+
+  return '<div class="head"><div><h1>Kunjungan</h1>' +
+    '<p>Siapa yang sudah membuka undangannya. Berguna untuk tahu siapa perlu diingatkan.</p></div></div>' +
+
+    '<div class="banner">' + icon('cog') +
+    '<div><b>Belum lintas perangkat.</b> Selama Supabase belum dipasang, yang tercatat hanya pembukaan di perangkat ini. ' +
+    'Setelah Supabase aktif, semua pembukaan dari HP tamu masuk ke sini otomatis.</div></div>' +
+
+    '<div class="grid g3" style="margin-bottom:16px">' +
+      stat(seen.length,'Tamu Membuka','stat--ok') +
+      stat(opens.length,'Total Buka') +
+      stat(unopened.length,'Belum Membuka','stat--warn') +
+    '</div>' +
+
+    (rows ? '<div class="card"><div class="card__t">Sudah Membuka</div>' +
+      '<div class="wrap"><table><thead><tr><th>Nama</th><th class="num">Kali</th>' +
+      '<th>Terakhir</th></tr></thead><tbody>' + rows + '</tbody></table></div></div>'
+      : '<div class="card empty"><h3>Belum ada catatan</h3>' +
+        '<p>Buka pratinjau undangan sekali untuk melihat cara kerjanya.</p></div>') +
+
+    (unopened.length ? '<div class="card"><div class="card__t">Belum Membuka (' + unopened.length + ')</div>' +
+      '<p style="margin:0 0 12px;color:var(--ink-2)">Klik nama untuk menyalin ulang link atau pesan WhatsApp-nya.</p>' +
+      '<div class="wrap"><table><tbody>' + unopened.slice(0,60).map(g =>
+        '<tr data-guest="' + g.id + '"><td><b>' + esc(g.name) + '</b></td>' +
+        '<td class="mono">' + esc(g.code) + '</td></tr>').join('') +
+      '</tbody></table></div></div>' : '');
+}
+
+/* ============================================================
+   QR — pembuat kode & pemindai kamera
+   ============================================================ */
+const CDN = {
+  qr:   'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
+  scan: 'https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js'
+};
+const loaded = {};
+function loadScript(url){
+  if (loaded[url]) return loaded[url];
+  loaded[url] = new Promise(res => {
+    const s = document.createElement('script');
+    s.src = url;
+    s.onload  = () => res(true);
+    s.onerror = () => res(false);
+    document.head.appendChild(s);
+  });
+  return loaded[url];
+}
+
+async function paintQR(node, text, size){
+  if (!node) return;
+  const ok = await loadScript(CDN.qr);
+  if (!ok || !window.QRCode){
+    node.innerHTML = '<p class="hint" style="margin:0">Pembuat QR gagal dimuat. Perlu koneksi internet.</p>';
+    return;
+  }
+  node.innerHTML = '';
+  new window.QRCode(node, { text, width:size || 150, height:size || 150,
+    colorDark:'#000000', colorLight:'#ffffff', correctLevel: window.QRCode.CorrectLevel.M });
+}
+
+/* Terima hasil pindai berupa URL penuh maupun kode polos */
+function codeFrom(text){
+  const raw = String(text || '').trim();
+  const m = raw.match(/[?&](?:ci|g)=([A-Za-z0-9]+)/);
+  if (m) return m[1].toUpperCase();
+  if (/^[A-Za-z0-9]{3,16}$/.test(raw)) return raw.toUpperCase();
+  return raw.toUpperCase().slice(0, 16);
+}
+
+let scanner = null, lastScan = '', lastScanAt = 0;
+
+async function startScan(){
+  const box = $('#reader');
+  if (!box) return;
+  box.innerHTML = '<p class="hint" style="margin:0">Memuat pemindai...</p>';
+
+  const ok = await loadScript(CDN.scan);
+  if (!ok || !window.Html5Qrcode){
+    box.innerHTML = '<p class="hint" style="margin:0">Pemindai gagal dimuat. Perlu koneksi internet, ' +
+      'atau gunakan kamera bawaan HP untuk memindai QR tamu.</p>';
+    return;
+  }
+
+  box.innerHTML = '';
+  try {
+    scanner = new window.Html5Qrcode('reader');
+    await scanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 230, height: 230 } },
+      onScan,
+      () => {}
+    );
+    $('#scanState').textContent = 'Kamera aktif. Arahkan ke QR tamu.';
+  } catch (err){
+    box.innerHTML = '<p class="hint" style="margin:0"><b>Kamera tidak bisa dibuka.</b><br>' +
+      'Pemindai hanya jalan lewat alamat https (misalnya setelah di-hosting di Vercel), ' +
+      'bukan dari berkas lokal. Sementara ini pakai kolom pencarian di bawah, ' +
+      'atau pindai dengan kamera bawaan HP.</p>';
+    scanner = null;
+  }
+}
+
+async function stopScan(){
+  if (!scanner) return;
+  try { await scanner.stop(); scanner.clear(); } catch (e) {}
+  scanner = null;
+  const b = $('#reader'); if (b) b.innerHTML = '';
+  const st = $('#scanState'); if (st) st.textContent = 'Kamera berhenti.';
+}
+
+async function onScan(text){
+  const c = codeFrom(text);
+  const now = Date.now();
+  if (c === lastScan && now - lastScanAt < 2500) return; // hindari pindai ganda
+  lastScan = c; lastScanAt = now;
+
+  const g = S.guests.find(x => x.code === c);
+  const st = $('#scanState');
+  if (!g){
+    if (st) st.innerHTML = '<span style="color:var(--bad)"><b>Kode ' + esc(c) + ' tidak dikenal.</b></span>';
+    toast('Kode tidak terdaftar.');
+    return;
+  }
+  if (g.checkedIn){
+    if (st) st.innerHTML = '<span style="color:var(--warn)"><b>' + esc(g.name) + '</b> sudah masuk sebelumnya.</span>';
+    toast(g.name + ' sudah check-in.');
+    return;
+  }
+  g.checkedIn = true;
+  g.checkedInAt = new Date().toISOString();
+  logGuest(g, 'Check-in via QR/scan');
+  await saveGuests();
+  if (st) st.innerHTML = '<span style="color:var(--ok)"><b>' + esc(g.name) + '</b> masuk &middot; ' + (g.pax || 1) + ' orang</span>';
+  toast(g.name + ' masuk.');
+  const cnt = $('#ciCount'); if (cnt) cnt.textContent = S.guests.filter(x => x.checkedIn).length + ' / ' + S.guests.length;
+  const row = document.querySelector('[data-checkin="' + g.id + '"] td:last-child');
+  if (row) row.innerHTML = '<span class="tag tag--ok">Hadir</span>';
+}
+
+function viewSettings(){
+  return '<div class="head"><div><h1>Pengaturan</h1>' +
+    '<p>Cadangan data dan koneksi. Ekspor rutin selama Supabase belum terpasang.</p></div></div>' +
+
+    '<div class="card"><div class="card__t">Umum</div>' +
+      fld('Nama proyek','meta.title') +
+      fld('PIN masuk admin','meta.pin','text','Empat digit. Ganti sebelum link dibagikan.') + '</div>' +
+
+    '<div class="card"><div class="card__t">Cadangan Data</div>' +
+      '<p style="margin:0 0 14px;color:var(--ink-2)">Ekspor menyimpan konten, tamu, dan ucapan dalam satu berkas JSON. ' +
+      'Impor mengembalikannya di perangkat mana pun.</p>' +
+      '<div class="row"><button class="b" data-backup>' + icon('down') + 'Ekspor Data</button>' +
+      '<button class="b b--line" data-restore>' + icon('copy') + 'Impor Data</button></div></div>' +
+
+    '<div class="card"><div class="card__t">Reset</div>' +
+      '<p style="margin:0 0 14px;color:var(--ink-2)">Hapus semua data percobaan (judul lama, tamu contoh, ucapan, catatan buka) ' +
+      'dan kembalikan ke data awal <b>Kenneth &amp; Kimberly</b>. Berguna kalau masih muncul nama atau tamu lama dari percobaan sebelumnya. ' +
+      '<b>Tindakan ini tidak bisa dibatalkan</b> — ekspor dulu kalau ada yang mau disimpan.</p>' +
+      '<button class="b b--bad" data-reset>' + icon('trash') + 'Reset ke Data Baru</button></div>' +
+
+    '<div class="card"><div class="card__t">Menuju Supabase</div>' +
+      '<p style="margin:0 0 12px;color:var(--ink-2)">Saat siap, buka <b>index.html</b> dan cari blok bertanda ' +
+      '<b>LAPISAN PENYIMPANAN</b> di bagian atas script. Ganti isi <code>get</code> dan <code>set</code> ' +
+      'dengan pemanggilan Supabase — tidak ada bagian lain yang perlu disentuh.</p>' +
+      '<p style="margin:0;color:var(--ink-2)">Tabel yang dibutuhkan hanya satu:</p>' +
+      '<pre style="margin:10px 0 0;padding:13px;background:var(--surface-2);border-radius:8px;overflow-x:auto;font-size:12px;line-height:1.6">create table wedding_kv (\n  key text primary key,\n  value jsonb,\n  updated_at timestamptz default now()\n);</pre></div>';
+}
+
+/* ============================================================
+   9. RENDER LOOP
+   ============================================================ */
+function render(){
+  if (!S.unlocked){
+    $('#root').innerHTML =
+      '<div class="gate"><div class="gate__box"><h1>Wedding Studio</h1>' +
+      '<p>Masukkan PIN untuk membuka panel.</p>' +
+      '<input id="pin" type="password" inputmode="numeric" placeholder="PIN" style="text-align:center;letter-spacing:.5em;font-size:20px">' +
+      '<button class="b" id="go" style="width:100%;margin-top:14px">Masuk</button>' +
+      '<p style="margin:16px 0 0;font-size:12px;color:var(--ink-3)">PIN awal: 1234 — ganti di Pengaturan.</p>' +
+      '</div></div>';
+    const tryPin = () => {
+      if ($('#pin').value.trim() === String(S.data.meta.pin)){ S.unlocked = true; render(); }
+      else toast('PIN salah.');
+    };
+    $('#go').addEventListener('click', tryPin);
+    $('#pin').addEventListener('keydown', e => { if (e.key === 'Enter') tryPin(); });
+    $('#pin').focus();
+    return;
+  }
+
+  const views = { dash:viewDash, stats:viewStats, content:viewContent, theme:viewTheme, guests:viewGuests,
+                  rsvp:viewRsvp, wishes:viewWishes, checkin:viewCheckin, opens:viewOpens, settings:viewSettings };
+  $('#root').innerHTML = shell((views[S.view] || viewDash)());
+
+  if (S.view === 'theme'){
+    const f = $('#pv');
+    if (f) f.srcdoc = renderInvitation(S.data, null);
+  }
+  if (S.view === 'checkin'){
+    if (S.pendingCheckin){
+      const c = S.pendingCheckin; S.pendingCheckin = null;
+      onScan(c);
+    }
+    const q = $('#q');
+    if (q) q.addEventListener('input', () => {
+      const v = q.value.trim().toLowerCase();
+      [].forEach.call(document.querySelectorAll('#ciBody tr'), tr => {
+        tr.style.display = tr.textContent.toLowerCase().includes(v) ? '' : 'none';
+      });
+    });
+  }
+
+  if (S.view === 'guests' && S.gl){
+    const q = $('#glq');
+    if (q){
+      // keep focus + caret across re-render by only re-rendering on debounce
+      q.addEventListener('input', () => {
+        S.gl.q = q.value; S.gl.page = 1;
+        clearTimeout(S._glt);
+        S._glt = setTimeout(() => { render(); const nq = $('#glq'); if (nq){ nq.focus(); nq.selectionStart = nq.value.length; } }, 220);
+      });
+    }
+    const st = $('#glstatus');
+    if (st) st.addEventListener('change', () => { S.gl.status = st.value; S.gl.page = 1; render(); });
+    const gr = $('#glgroup');
+    if (gr) gr.addEventListener('change', () => { S.gl.group = gr.value; S.gl.page = 1; render(); });
+  }
+
+  if (S.view === 'wishes' && S.wm){
+    const q = $('#wq');
+    if (q) q.addEventListener('input', () => {
+      S.wm.q = q.value;
+      clearTimeout(S._wt);
+      S._wt = setTimeout(() => { render(); const nq = $('#wq'); if (nq){ nq.focus(); nq.selectionStart = nq.value.length; } }, 220);
+    });
+  }
+}
+
+/* ============================================================
+   10. MODAL
+   ============================================================ */
+function openModal(html){
+  $('#modalBox').innerHTML = html;
+  $('#modal').classList.add('on');
+}
+function closeModal(){ $('#modal').classList.remove('on'); }
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function logGuest(g, action){
+  if (!g.logs) g.logs = [];
+  g.logs.unshift({ at:new Date().toISOString(), action });
+  if (g.logs.length > 50) g.logs = g.logs.slice(0, 50);
+}
+
+const WASTATUS = ['','New','Sent','Delivered','Read','Opened','Failed'];
+
+function guestModalHome(g, link, msg){
+  const base = location.origin + location.pathname;
+  const evs = S.data.events || [];
+  const q1 = evs[0] ? evs[0].kind : 'Acara 1';
+  const q2 = evs[1] ? evs[1].kind : 'Acara 2';
+  return '<div class="grid g2">' +
+      '<div class="f"><label>Nama</label><input id="mName" value="' + esc(g.name) + '"></div>' +
+      '<div class="f"><label>Telepon (WhatsApp)</label><input id="mPhone" value="' + esc(g.phone || '') + '" placeholder="+62812..."></div>' +
+    '</div>' +
+    '<div class="grid g2">' +
+      '<div class="f"><label>Kelompok</label><input id="mCat" value="' + esc(g.group || g.category || '') + '" placeholder="Keluarga / Kantor"></div>' +
+      '<div class="f"><label>Kelompok 2</label><input id="mGroup2" value="' + esc(g.group2 || '') + '" placeholder="opsional"></div>' +
+    '</div>' +
+    '<div class="dtl__sec">Kuota &amp; RSVP per acara</div>' +
+    '<div class="grid g2">' +
+      '<div class="f"><label>Kuota ' + esc(q1) + '</label><input id="mQ1" type="number" min="0" value="' + (g.q1 != null ? g.q1 : (g.pax || 1)) + '"></div>' +
+      '<div class="f"><label>RSVP ' + esc(q1) + '</label><input id="mR1" type="number" min="0" value="' + (g.r1 != null ? g.r1 : 0) + '"></div>' +
+    '</div>' +
+    (evs.length > 1 ? '<div class="grid g2">' +
+      '<div class="f"><label>Kuota ' + esc(q2) + '</label><input id="mQ2" type="number" min="0" value="' + (g.q2 != null ? g.q2 : (g.pax || 1)) + '"></div>' +
+      '<div class="f"><label>RSVP ' + esc(q2) + '</label><input id="mR2" type="number" min="0" value="' + (g.r2 != null ? g.r2 : 0) + '"></div>' +
+    '</div>' : '') +
+    '<div class="dtl__sec">Status</div>' +
+    '<div class="grid g2">' +
+      '<div class="f"><label>Status RSVP</label><select id="mSt">' +
+        ['pending','yes','maybe','no'].map(v => '<option value="' + v + '"' + (g.status === v ? ' selected' : '') + '>' +
+        ({pending:'Belum jawab',yes:'Hadir',maybe:'Diusahakan',no:'Berhalangan'})[v] + '</option>').join('') +
+      '</select></div>' +
+      '<div class="f"><label>Status WhatsApp</label><select id="mWa">' +
+        WASTATUS.map(v => '<option value="' + v + '"' + ((g.waStatus||'') === v ? ' selected' : '') + '>' + (v || '—') + '</option>').join('') +
+      '</select></div>' +
+    '</div>' +
+    '<div class="grid g2">' +
+      '<div class="f"><label>Nomor Meja</label><input id="mTable" value="' + esc(g.table || '') + '" placeholder="mis. 12"></div>' +
+      '<div class="f"><label>Kode PIN</label><input value="' + esc(g.code) + '" readonly></div>' +
+    '</div>' +
+    '<div class="f"><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0">' +
+      '<input type="checkbox" id="mAttend" style="width:auto;min-height:auto"' + (g.checkedIn ? ' checked' : '') + '> Sudah hadir (check-in)</label></div>' +
+    '<div class="f"><label>Catatan khusus</label><textarea id="mNote">' + esc(g.note || '') + '</textarea></div>' +
+    '<div class="dtl__sec">Bagikan</div>' +
+    '<div class="f"><label>Link personal</label><input value="' + esc(link) + '" readonly></div>' +
+    '<div class="qrwrap"><div id="mQR" class="qrcard"></div>' +
+      '<p class="hint" style="margin:0">Kode <b>' + esc(g.code) + '</b> — QR ini juga muncul di undangan tamu. Bisa dicetak.</p></div>' +
+    '<div class="row" style="margin-top:14px">' +
+      '<button class="b b--line b--sm" data-copytext="' + esc(link) + '">' + icon('copy') + 'Salin Link</button>' +
+      '<button class="b b--line b--sm" data-copytext="' + esc(msg) + '">' + icon('copy') + 'Salin Pesan WA</button>' +
+      '<button class="b b--line b--sm" data-wa="' + g.id + '">' + icon('chat') + 'Buka WhatsApp</button>' +
+      '<a class="b b--line b--sm" href="' + esc(link) + '" target="_blank" rel="noopener">' + icon('eye') + 'Pratinjau</a>' +
+    '</div>';
+}
+
+function guestModalLogs(g){
+  const fmt = (s) => { try { return new Date(s).toLocaleString('id-ID', { dateStyle:'medium', timeStyle:'short' }); } catch(e){ return s; } };
+  if (!g.logs || !g.logs.length)
+    return '<div class="empty" style="padding:40px 10px"><h3>Belum ada catatan</h3>' +
+      '<p>Perubahan status, RSVP, dan check-in tamu ini akan tercatat di sini.</p></div>';
+  return '<div class="logs">' + g.logs.map(l =>
+    '<div class="logrow"><span class="logrow__t">' + esc(fmt(l.at)) + '</span>' +
+    '<span class="logrow__a">' + esc(l.action) + '</span></div>').join('') + '</div>';
+}
+
+function guestModal(g, tab){
+  tab = tab || 'home';
+  const base = location.origin + location.pathname;
+  const link = base + '?g=' + g.code;
+  const msg = 'Dengan hormat, kami mengundang ' + g.name + ' pada pernikahan ' +
+    S.data.groom.short + ' & ' + S.data.bride.short + '.\n\nUndangan lengkap:\n' + link +
+    '\n\nMohon konfirmasi kehadiran melalui tautan di atas. Terima kasih.';
+
+  openModal(
+    '<div class="modal__h dtl__h"><h2>Detail Tamu</h2>' +
+      '<div class="dtl__tabs">' +
+        '<button class="dtl__tab ' + (tab === 'home' ? 'on' : '') + '" data-gtab="home" data-gid="' + g.id + '">Home</button>' +
+        '<button class="dtl__tab ' + (tab === 'logs' ? 'on' : '') + '" data-gtab="logs" data-gid="' + g.id + '">Logs</button>' +
+      '</div>' +
+      '<button class="x" data-close>&times;</button></div>' +
+    (tab === 'home' ? guestModalHome(g, link, msg) : guestModalLogs(g)) +
+    '<div class="row" style="justify-content:space-between;margin-top:16px">' +
+      '<button class="b b--bad" data-delguest="' + g.id + '">' + icon('trash') + 'Hapus</button>' +
+      (tab === 'home' ? '<button class="b" data-saveguest="' + g.id + '">Simpan</button>' : '<button class="b b--line" data-close>Tutup</button>') +
+    '</div>'
+  );
+  if (tab === 'home') paintQR($('#mQR'), base + '?ci=' + g.code, 150);
+}
+
+/* ============================================================
+   11. AKSI
+   ============================================================ */
+function setPath(path, val){
+  const keys = path.split('.');
+  let o = S.data;
+  for (let i = 0; i < keys.length - 1; i++){
+    const k = keys[i];
+    if (o[k] === undefined) o[k] = /^\d+$/.test(keys[i+1]) ? [] : {};
+    o = o[k];
+  }
+  o[keys[keys.length-1]] = val;
+}
+
+function download(name, content, type){
+  const blob = new Blob([content], { type: type || 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+}
+
+function exportExcel(){
+  const head = ['Nama','Telepon','Kelompok','Kode','Status','Pax','Check-in','Catatan'];
+  const map = { pending:'Belum jawab', yes:'Hadir', maybe:'Diusahakan', no:'Berhalangan' };
+  const q = (s) => '"' + String(s == null ? '' : s).replace(/"/g,'""') + '"';
+  const rows = S.guests.map(g => [g.name, g.phone || '', g.group || g.category || '', g.code,
+    map[g.status] || 'Belum jawab', g.pax || 1, g.checkedIn ? 'Sudah' : 'Belum', g.note || ''].map(q).join(','));
+  download('daftar-tamu.csv', '\uFEFF' + [head.map(q).join(',')].concat(rows).join('\r\n'), 'text/csv;charset=utf-8');
+  toast('Berkas diunduh. Buka dengan Excel.');
+}
+
+document.addEventListener('click', async (e) => {
+  const el = (s) => e.target.closest(s);
+  let n;
+
+  if (el('[data-close]')) { stopScan(); return closeModal(); }
+  if (el('[data-scan]')) return startScan();
+  if (el('[data-stopscan]')) return stopScan();
+
+  if ((n = el('[data-go]'))){ if (S.view === 'checkin') await stopScan(); S.view = n.dataset.go; render(); return; }
+
+  if ((n = el('[data-cover]'))){
+    S.data.meta.cover = n.dataset.cover; await saveData(); render();
+    toast('Animasi: ' + COVERS[S.data.meta.cover].name); return;
+  }
+
+  if ((n = el('[data-pick]'))){
+    const path = n.dataset.pick;
+    pickImage(async (dataUrl) => {
+      setPath(path, dataUrl);
+      const ok = await saveData();
+      render();
+      toast(ok ? 'Foto tersimpan.' : 'Foto terlalu besar untuk disimpan — coba yang lebih kecil.');
+    }, path.indexOf('og.') === 0 ? 1200 : 1400);
+    return;
+  }
+
+  if ((n = el('[data-clear]'))){
+    setPath(n.dataset.clear, ''); await saveData(); render(); return;
+  }
+
+  if ((n = el('[data-theme]'))){
+    S.data.meta.theme = n.dataset.theme;
+    if (S.data.meta.theme === 'custom' && !S.data.meta.customTheme){
+      S.data.meta.customTheme = { paper:THEMES.custom.paper, paper2:THEMES.custom.paper2,
+        ink:THEMES.custom.ink, accent:THEMES.custom.accent, font:THEMES.custom.font };
+    }
+    if (S.data.meta.theme === 'kenkim'){
+      // Signature preset: the full luxury layout, ready out of the box
+      S.data.meta.cover = 'rose';
+      S.data.meta.card = 'framed';
+      S.data.meta.rsvp = 'buttons';
+      S.data.meta.gallery = 'masonry';
+      S.data.meta.nav = 'top';
+    }
+    await saveData(); render();
+    toast('Template diganti: ' + THEMES[S.data.meta.theme].name); return;
+  }
+
+  if (el('[data-preview]')){
+    const w = window.open('', '_blank');
+    if (w){ w.document.write(renderInvitation(S.data, null)); w.document.close(); }
+    else toast('Pop-up diblokir browser.');
+    return;
+  }
+
+  if (el('[data-export]')){
+    download('undangan.html', renderInvitation(S.data, null), 'text/html;charset=utf-8');
+    toast('Undangan diunduh.'); return;
+  }
+
+  if (el('[data-excel]')) return exportExcel();
+
+  if ((n = el('[data-add]'))){
+    const w = n.dataset.add;
+    if (w === 'events') S.data.events.push({ kind:'Acara Baru', date:'', time:'', venue:'', address:'', maps:'' });
+    if (w === 'story')  S.data.story.push({ year:'', title:'', text:'' });
+    if (w === 'gifts')  S.data.gifts.push({ bank:'', number:'', holder:'' });
+    if (w === 'gallery'){ S.data.gallery = S.data.gallery || []; S.data.gallery.push(''); }
+    if (w === 'rundown'){ S.data.rundown = S.data.rundown || []; S.data.rundown.push({ time:'', item:'' }); }
+    if (w === 'hosts'){ S.data.hosts = S.data.hosts || []; S.data.hosts.push(''); }
+    await saveData(); render(); return;
+  }
+
+  if ((n = el('[data-del]'))){
+    const parts = n.dataset.del.split(':');
+    S.data[parts[0]].splice(Number(parts[1]), 1);
+    await saveData(); render(); return;
+  }
+
+  if (el('[data-newguest]')){
+    const g = { id:uid(), code:code(), name:'Tamu Baru', group:'', category:'', phone:'', pax:1, status:'pending', checkedIn:false, note:'' };
+    S.guests.push(g); await saveGuests(); render(); guestModal(g); return;
+  }
+
+  if (el('[data-import]')){
+    openModal('<div class="modal__h"><h2>Impor Daftar Tamu</h2><button class="x" data-close>&times;</button></div>' +
+      '<div class="f"><label>Satu tamu per baris</label>' +
+      '<textarea id="bulk" style="min-height:200px" placeholder="Bapak Budi Santoso, +628123456789, Keluarga, 2\nKeluarga Wijaya, , Kantor, 4\nDimas &amp; Sarah"></textarea>' +
+      '<p class="hint">Format per baris: <b>Nama, Telepon, Kelompok, Jumlah</b>. ' +
+      'Yang wajib hanya nama; sisanya boleh dikosongkan (tetap pakai koma). ' +
+      'Contoh minimal: <b>Bapak Budi</b></p></div>' +
+      '<button class="b" data-dobulk style="width:100%">Tambahkan</button>');
+    return;
+  }
+
+  if (el('[data-dobulk]')){
+    const lines = ($('#bulk').value || '').split('\n').map(s => s.trim()).filter(Boolean);
+    lines.forEach(line => {
+      const p = line.split(',').map(s => s.trim());
+      S.guests.push({ id:uid(), code:code(), name:p[0],
+        phone:p[1] || '', group:p[2] || '', category:p[2] || '',
+        pax:Number(p[3]) || 1, status:'pending', checkedIn:false, note:'' });
+    });
+    await saveGuests(); closeModal(); render();
+    toast(lines.length + ' tamu ditambahkan.'); return;
+  }
+
+  if ((n = el('[data-wa]'))){
+    const g = S.guests.find(x => x.id === n.dataset.wa);
+    if (g){
+      const base = location.origin + location.pathname;
+      const link = base + '?g=' + g.code;
+      const msg = 'Dengan hormat, kami mengundang ' + g.name + ' pada pernikahan ' +
+        S.data.groom.short + ' & ' + S.data.bride.short + '.\n\nUndangan lengkap:\n' + link +
+        '\n\nMohon konfirmasi kehadiran melalui tautan di atas. Terima kasih.';
+      const phone = (g.phone || '').replace(/[^0-9]/g, '');
+      const wa = 'https://wa.me/' + (phone ? phone : '') + '?text=' + encodeURIComponent(msg);
+      window.open(wa, '_blank');
+    }
+    return; // don't fall through to opening the modal
+  }
+
+  if ((n = el('[data-glpage]'))){
+    if (!S.gl) return;
+    if (n.dataset.glpage === 'prev' && S.gl.page > 1) S.gl.page--;
+    if (n.dataset.glpage === 'next') S.gl.page++;
+    render(); return;
+  }
+
+  if ((n = el('[data-guest]'))){
+    const g = S.guests.find(x => x.id === n.dataset.guest);
+    if (g) guestModal(g); return;
+  }
+
+  if ((n = el('[data-saveguest]'))){
+    const g = S.guests.find(x => x.id === n.dataset.saveguest);
+    if (g){
+      const gv = (id) => { const e = $(id); return e ? e.value : undefined; };
+      const prevStatus = g.status, prevWa = g.waStatus, prevIn = g.checkedIn;
+      g.name = ($('#mName').value.trim()) || g.name;
+      g.phone = $('#mPhone').value.trim();
+      g.group = $('#mCat').value.trim();
+      g.category = g.group;
+      g.group2 = gv('#mGroup2') || '';
+      g.q1 = Number(gv('#mQ1')) || 0;
+      g.r1 = Number(gv('#mR1')) || 0;
+      if ($('#mQ2')) g.q2 = Number(gv('#mQ2')) || 0;
+      if ($('#mR2')) g.r2 = Number(gv('#mR2')) || 0;
+      // keep pax = larger of the two quotas so older views still work
+      g.pax = Math.max(Number(g.q1) || 0, Number(g.q2) || 0, 1);
+      g.status = $('#mSt').value;
+      g.waStatus = $('#mWa') ? $('#mWa').value : (g.waStatus || '');
+      g.table = gv('#mTable') || '';
+      g.checkedIn = $('#mAttend') ? $('#mAttend').checked : g.checkedIn;
+      g.note = $('#mNote').value.trim();
+      if (g.status !== prevStatus) logGuest(g, 'Status RSVP diubah ke ' + g.status);
+      if (g.waStatus !== prevWa && g.waStatus) logGuest(g, 'Status WhatsApp: ' + g.waStatus);
+      if (g.checkedIn !== prevIn) logGuest(g, g.checkedIn ? 'Check-in ditandai hadir' : 'Check-in dibatalkan');
+      logGuest(g, 'Data disimpan');
+      await saveGuests();
+    }
+    closeModal(); render(); toast('Tamu disimpan.'); return;
+  }
+
+  if ((n = el('[data-gtab]'))){
+    const g = S.guests.find(x => x.id === n.dataset.gid);
+    if (g) guestModal(g, n.dataset.gtab);
+    return;
+  }
+
+  if ((n = el('[data-delguest]'))){
+    S.guests = S.guests.filter(x => x.id !== n.dataset.delguest);
+    await saveGuests(); closeModal(); render(); toast('Tamu dihapus.'); return;
+  }
+
+  if ((n = el('[data-checkin]'))){
+    const g = S.guests.find(x => x.id === n.dataset.checkin);
+    if (g){
+      g.checkedIn = !g.checkedIn;
+      logGuest(g, g.checkedIn ? 'Check-in manual (hadir)' : 'Check-in dibatalkan');
+      await saveGuests(); render();
+      toast(g.checkedIn ? g.name + ' masuk.' : 'Check-in dibatalkan.');
+    }
+    return;
+  }
+
+  if ((n = el('[data-toggle-wish]'))){
+    const w = S.wishes.find(x => x.id === n.dataset.toggleWish);
+    if (w){ w.status = w.status === 'hidden' ? 'shown' : 'hidden'; await saveWishes(); render(); }
+    return;
+  }
+
+  if ((n = el('[data-wapprove]'))){
+    const w = S.wishes.find(x => x.id === n.dataset.wapprove);
+    if (w){
+      const cur = w.approval ? w.approval === 'approved' : (w.status !== 'hidden');
+      w.approval = cur ? 'pending' : 'approved';
+      w.status = cur ? 'hidden' : 'shown'; // keep legacy field in sync
+      await saveWishes(); render();
+      toast(cur ? 'Dijadikan pending.' : 'Ucapan disetujui.');
+    }
+    return;
+  }
+
+  if ((n = el('[data-wprivacy]'))){
+    const w = S.wishes.find(x => x.id === n.dataset.wprivacy);
+    if (w){ w.privacy = (w.privacy === 'private') ? 'public' : 'private'; await saveWishes(); render(); }
+    return;
+  }
+
+  if ((n = el('[data-wfilter]'))){
+    const parts = n.dataset.wfilter.split(':');
+    if (!S.wm) S.wm = { q:'', approval:'all', privacy:'all' };
+    S.wm[parts[0]] = parts[1];
+    render(); return;
+  }
+
+  if ((n = el('[data-del-wish]'))){
+    S.wishes = S.wishes.filter(x => x.id !== n.dataset.delWish);
+    await saveWishes(); render(); return;
+  }
+
+  if ((n = el('[data-copytext]'))){
+    try { await navigator.clipboard.writeText(n.dataset.copytext); toast('Tersalin.'); }
+    catch (err) { toast('Salin manual dari kolom di atas.'); }
+    return;
+  }
+
+  if (el('[data-backup]')){
+    download('wedding-backup.json',
+      JSON.stringify({ data:S.data, guests:S.guests, wishes:S.wishes, opens:S.opens }, null, 2),
+      'application/json'); 
+    toast('Cadangan diunduh.'); return;
+  }
+
+  if (el('[data-reset]')){
+    openModal(
+      '<div class="modal__h"><h2>Reset ke Data Baru?</h2><button class="x" data-close>&times;</button></div>' +
+      '<p style="margin:0 0 12px;color:var(--ink-2)">Semua data percobaan akan dihapus: judul lama, ' +
+      'daftar tamu, ucapan, dan catatan buka. Konten kembali ke data awal Kenneth &amp; Kimberly.</p>' +
+      '<p style="margin:0 0 18px;color:var(--bad);font-weight:500">Tindakan ini tidak bisa dibatalkan.</p>' +
+      '<div class="row" style="justify-content:space-between">' +
+        '<button class="b b--line" data-close>Batal</button>' +
+        '<button class="b b--bad" data-reset-confirm>Ya, Reset Sekarang</button></div>'
+    );
+    return;
+  }
+
+  if (el('[data-reset-confirm]')){
+    S.data = seed();
+    S.guests = [];
+    S.wishes = [];
+    S.opens = [];
+    S.view = 'dash';
+    await saveData(); await saveGuests(); await saveWishes(); await saveOpens();
+    closeModal();
+    render();
+    toast('Data direset ke Kenneth & Kimberly.');
+    return;
+  }
+
+  if (el('[data-restore]')){
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = '.json,application/json';
+    inp.addEventListener('change', () => {
+      const f = inp.files && inp.files[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = async () => {
+        try {
+          const j = JSON.parse(String(r.result));
+          if (j.data)   { S.data = j.data;     await saveData(); }
+          if (j.guests) { S.guests = j.guests; await saveGuests(); }
+          if (j.wishes) { S.wishes = j.wishes; await saveWishes(); }
+          if (j.opens)  { S.opens  = j.opens;  await saveOpens(); }
+          render(); toast('Data dipulihkan.');
+        } catch (err) { toast('Berkas tidak terbaca.'); }
+      };
+      r.readAsText(f);
+    });
+    inp.click(); return;
+  }
+});
+
+/* Simpan otomatis saat pindah kolom */
+document.addEventListener('change', async (e) => {
+  const t = e.target;
+  if (t && t.dataset && t.dataset.path){
+    setPath(t.dataset.path, t.value);
+    await saveData();
+    if (S.view === 'theme'){ const f = $('#pv'); if (f) f.srcdoc = renderInvitation(S.data, null); }
+    toast('Tersimpan.');
+  }
+});
+
+/* Terima RSVP dari iframe pratinjau */
+addEventListener('message', async (e) => {
+  const m = e.data;
+  if (!m) return;
+
+  if (m.type === 'opened'){
+    S.opens.push({ guest:m.guest, at:m.at });
+    if (S.opens.length > 500) S.opens = S.opens.slice(-500);
+    await saveOpens();
+    if (S.unlocked && S.view === 'opens') render();
+    return;
+  }
+
+  if (m.type !== 'rsvp') return;
+  const p = m.payload;
+  if (p.guest && p.guest.id){
+    const g = S.guests.find(x => x.id === p.guest.id);
+    if (g){ g.status = p.attend; g.pax = Number(p.pax) || 1; g.note = p.message || g.note;
+      if (p.which !== undefined) g.which = p.which; await saveGuests(); }
+  }
+  if (p.message){
+    S.wishes.unshift({ id:uid(), name:p.name, message:p.message,
+      rsvpLabel:({yes:'Accepts',maybe:'Hoping to',no:'Declines'})[p.attend] || '',
+      status:'shown', at:p.at });
+    await saveWishes();
+  }
+  if (S.unlocked) render();
+});
+
+/* ============================================================
+   12. BOOT
+   ============================================================ */
+(async () => {
+  const qs = new URLSearchParams(location.search);
+  const gcode = qs.get('g');
+  if (gcode) return bootGuest(gcode);
+
+  await load();
+
+  // QR dipindai kamera bawaan HP -> buka check-in untuk kode itu
+  const ci = qs.get('ci');
+  if (ci){
+    S.pendingCheckin = ci.trim().toUpperCase();
+    S.view = 'checkin';
+  }
+  render();
+})();
+
+})();
+</script>
+</body>
+</html>
