@@ -579,6 +579,7 @@ async function load(){
   if (!S.data.assets || typeof S.data.assets !== 'object') S.data.assets = {};
   if (!S.data.assetCfg || typeof S.data.assetCfg !== 'object') S.data.assetCfg = {};
   if (!Array.isArray(S.data.blocks)) S.data.blocks = [];
+  if (!S.data.secBg || typeof S.data.secBg !== 'object') S.data.secBg = {};
   if (!S.data.layout || typeof S.data.layout !== 'object') S.data.layout = { order:[], hidden:[] };
   if (!Array.isArray(S.data.layout.order)) S.data.layout.order = [];
   if (!Array.isArray(S.data.layout.hidden)) S.data.layout.hidden = [];
@@ -808,7 +809,32 @@ function renderInvitation(d, guest){
     '<h2 class="arch__n">' + esc(d.bride.short) + '</h2><p class="arch__p">' + parentsLine(d.bride) + '</p>' +
     '</div></div></section>' : '';
 
+  /* latar per bagian: warna atau foto, penuh selebar layar */
+  const secBgCfg = d.secBg || {};
+  const lumHex = h => { const n = parseInt(String(h).replace('#', ''), 16) || 0; return 0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255); };
+  const sbIds = SECTION_DEFS.map(x => x.id).filter(id => { const c = secBgCfg[id]; return c && (c.color || c.image) && !isHiddenSec(d, id); });
+  const sbVars = sbIds.map(id => '--sbd-' + id + ':' + ((secBgCfg[id].dim == null || secBgCfg[id].dim === '' ? 45 : Number(secBgCfg[id].dim)) / 100)).join(';');
+  const sbCSS =
+    '.sbg{position:absolute;top:0;bottom:0;left:50%;width:100vw;transform:translateX(-50%);z-index:-1;pointer-events:none}' +
+    '.sbg::after{content:"";position:absolute;inset:0}' +
+    sbIds.map(id => {
+      const c = secBgCfg[id], q = '#' + secDomId(d, id), hasImg = !!c.image;
+      const dim = (c.dim == null || c.dim === '') ? 45 : Number(c.dim);
+      let tone = c.tone || 'auto';
+      if (tone === 'auto') tone = hasImg ? (dim >= 30 ? 'light' : 'dark') : (lumHex(c.color) < 140 ? 'light' : 'dark');
+      const txt = tone === 'light' ? '#FBF4EC' : '#2A2420';
+      const acc = tone === 'light' ? mixHex(t.accent, '#FFFFFF', 0.45) : mixHex(t.accent, '#000000', 0.22);
+      return q + '{position:relative;isolation:isolate;color:' + txt + '}' +
+        q + '>.sbg{background:' + (hasImg ? (c.color ? esc(c.color) + ' ' : '') + cu(c.image) + ' center/cover no-repeat' : esc(c.color)) + '}' +
+        (hasImg ? q + '>.sbg::after{background:rgba(0,0,0,var(--sbd-' + id + '))}' : '') +
+        q + ' :is(h1,h2,h3,h4,p,span,b,em,cite,blockquote,label){color:inherit}' +
+        q + ' :is(.lbl,.scr,.ev__t,.ch__y,.acct__b,.prs__r,.dres__k,.link,.names .and,.pass__c){color:' + acc + '}' +
+        q + ' .btn{background:transparent;color:' + txt + ';border-color:' + (tone === 'light' ? 'rgba(251,244,236,.7)' : 'rgba(42,36,32,.6)') + '}' +
+        q + ' :is(input,select,textarea){background:rgba(' + (tone === 'light' ? '255,255,255,.1' : '255,255,255,.55') + ');color:' + txt + ';border-color:' + (tone === 'light' ? 'rgba(251,244,236,.45)' : 'rgba(42,36,32,.4)') + '}';
+    }).join('');
+
   const css =
+':root{' + sbVars + '}' +
 '*,*::before,*::after{box-sizing:border-box}' +
 ':root{' + assetVars(d).map(v => v[0] + ':' + v[1]).join(';') + '}' +
 'html{scroll-behavior:smooth}' +
@@ -840,6 +866,7 @@ function renderInvitation(d, guest){
   '.vimg.dk.v' + n + '{box-sizing:content-box;background:#F4EFE4;border-radius:14px;padding:14px 14px 8px;width:calc((72% - 28px)*var(--a-venue' + n + '-s));max-width:calc(252px*var(--a-venue' + n + '-s))}').join('') +
 '.mono{display:block;margin:0 auto 14px;width:auto;max-height:calc(110px*var(--a-monogram-s));max-width:calc(60%*var(--a-monogram-s));transform:translate(var(--a-monogram-x),var(--a-monogram-y));opacity:var(--a-monogram-o)}' +
 '.load__img{display:block;margin:0 auto 14px;max-height:90px;width:auto;max-width:60%}' +
+sbCSS +
 '.blk{padding:0;margin:0}' +
 '.blk figure{position:relative;margin:0 auto;max-width:720px}' +
 '.blk--ph img{width:100%;height:auto}' +
@@ -1308,7 +1335,7 @@ function renderInvitation(d, guest){
   (d.giftAddress ? '<article class="acct" style="margin-top:32px;padding-top:32px;border-top:1px solid ' + t.rule + '">' +
    '<p class="acct__b">Send a parcel</p><p class="acct__w" style="margin-top:11px">' + nl2br(d.giftAddress) + '</p></article>' : '') +
   '</div></section>';
-  SEC.close = '<section class="close">' + cornersHTML + '<p class="scr">Thank you</p>' +
+  SEC.close = '<section class="close" id="close">' + cornersHTML + '<p class="scr">Thank you</p>' +
   '<p class="lede">' + esc(d.closing) + '</p>' +
   '<h2 class="names close__n"><span>' + esc(d.groom.short) + '</span><span class="and">and</span><span>' + esc(d.bride.short) + '</span></h2>' +
   '<p class="colo">Together with their families</p></section>';
@@ -1333,6 +1360,7 @@ function renderInvitation(d, guest){
         (b.caption ? '<span class="cap">' + esc(b.caption) + '</span>' : '') + '</figcaption>' : '') + '</figure></section>';
   };
   (d.blocks || []).forEach(b => { SEC[b.id] = blockHTML(b); });
+  sbIds.forEach(id => { if (SEC[id]) SEC[id] = SEC[id].replace(/^(\s*<section\b[^>]*>)/, '$1<div class="sbg" aria-hidden="true"></div>'); });
   const mainHTML = resolveOrder(d).filter(id => !isHiddenSec(d, id)).map(id => SEC[id] || '').join('');
 
   const body =
@@ -2020,6 +2048,7 @@ function viewTheme(){
       '</select></div></div></div>' +
 
     orderCard() +
+    sectionBgCard() +
     blocksCard() +
     assetsCard() +
     '</div><aside class="tplpv"><div class="card"><div class="card__t">Pratinjau Langsung</div>' +
@@ -2029,6 +2058,43 @@ function viewTheme(){
     '<div class="row" style="margin-top:14px">' +
     '<button class="b" data-export>' + icon('down') + 'Unduh (HTML)</button>' +
     '<button class="b b--line" data-preview>' + icon('eye') + 'Tab Baru</button></div></div></aside></div>';
+}
+
+function sectionBgCard(){
+  const sel = SECTION_DEFS.some(x => x.id === S.bgSel) ? S.bgSel : 'close';
+  const all = S.data.secBg || {};
+  const c = all[sel] || {};
+  const th = S.data.meta.theme === 'custom' ? Object.assign({}, THEMES.custom, S.data.meta.customTheme || {}) : (THEMES[S.data.meta.theme] || THEMES.ivory);
+  const themeCol = sel === 'close' ? th.paper2 : th.paper;
+  const has = x => all[x] && (all[x].color || all[x].image);
+  const opts = SECTION_DEFS.map(x => '<option value="' + x.id + '"' + (x.id === sel ? ' selected' : '') + '>' + esc(x.name) + (has(x.id) ? '  ●' : '') + '</option>').join('');
+  const dim = (c.dim == null || c.dim === '') ? 45 : Number(c.dim);
+  return '<div class="card"><div class="card__t">Latar Bagian</div>' +
+    '<p style="margin:0 0 14px;color:var(--ink-2)">Beri warna atau foto latar sendiri untuk bagian tertentu, tanpa mengubah warna tema. Tanda ● berarti bagian itu punya latar khusus.</p>' +
+    '<div class="f"><label>Bagian</label><select data-bgsel>' + opts + '</select></div>' +
+    '<div class="f"><label>Warna latar</label><div class="row" style="align-items:center">' +
+      '<input type="color" data-bgcolor value="' + esc(c.color || themeCol) + '" style="width:64px;height:40px;padding:2px">' +
+      '<span class="hint" style="margin:0">' + (c.color ? esc(c.color) : 'ikut tema') + '</span>' +
+      (c.color ? '<button class="b b--sm b--line" data-bgclear="color">Pakai warna tema</button>' : '') + '</div></div>' +
+    '<div class="f"><label>Foto latar (opsional)</label><div class="ph">' +
+      (c.image ? '<img class="ph__t" src="' + esc(c.image) + '" alt="Pratinjau">' : '<div class="ph__t ph__e">Belum ada</div>') +
+      '<div class="ph__a"><button class="b b--line b--sm" data-bgpick>' + icon('plus') + (c.image ? 'Ganti Foto' : 'Unggah Foto') + '</button>' +
+      (c.image ? '<button class="b b--sm b--bad" data-bgclear="image">' + icon('trash') + 'Hapus</button>' : '') +
+      '<p class="hint" style="margin:0">Foto menutupi seluruh lebar layar.</p></div></div></div>' +
+    (c.image ? '<div class="f"><label>Lapisan gelap di atas foto</label><label class="acfg__r" style="grid-template-columns:1fr 46px">' +
+      '<input type="range" min="0" max="90" step="1" value="' + dim + '" data-bgdim><b>' + dim + '%</b></label></div>' : '') +
+    '<div class="f"><label>Warna teks</label><select data-bgtone>' +
+      [['auto','Otomatis (menyesuaikan latar)'],['light','Terang (untuk latar gelap)'],['dark','Gelap (untuk latar terang)']].map(o =>
+        '<option value="' + o[0] + '"' + ((c.tone || 'auto') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div>' +
+    (has(sel) ? '<button class="b b--line b--sm" data-bgclear="all">Kembalikan latar bagian ini ke tema</button>' : '') +
+    '</div>';
+}
+
+function setSecBg(id, patch){
+  S.data.secBg = S.data.secBg || {};
+  const c = Object.assign({}, S.data.secBg[id] || {}, patch);
+  Object.keys(c).forEach(k => { if (c[k] === '' || c[k] === undefined || c[k] === null) delete c[k]; });
+  if (c.color || c.image) S.data.secBg[id] = c; else delete S.data.secBg[id];
 }
 
 function blockName(b){
@@ -3022,6 +3088,19 @@ document.addEventListener('click', async (e) => {
     return;
   }
 
+  if (el('[data-bgpick]')){
+    const id = S.bgSel || 'close';
+    pickImage(async (url) => { setSecBg(id, { image:url }); }, 1600, { done: async () => { await saveData(); render(); pvJump(secDomId(S.data, id), true); toast('Foto latar tersimpan.'); } });
+    return;
+  }
+
+  if ((n = el('[data-bgclear]'))){
+    const id = S.bgSel || 'close', w = n.dataset.bgclear;
+    if (w === 'all') { if (S.data.secBg) delete S.data.secBg[id]; }
+    else setSecBg(id, w === 'image' ? { image:'', dim:'', tone:'' } : { color:'' });
+    await saveData(); render(); pvJump(secDomId(S.data, id), true); return;
+  }
+
   if ((n = el('[data-blkadd]'))){
     const type = n.dataset.blkadd;
     S.data.blocks = S.data.blocks || [];
@@ -3347,6 +3426,24 @@ document.addEventListener('input', (e) => {
     f.contentDocument.documentElement.style.setProperty(vv[0], vv[1]);
   }
   clearTimeout(S._acT); S._acT = setTimeout(() => { saveData(); }, 700);
+});
+
+/* Latar bagian: bagian terpilih, warna, nada teks (saat nilai dilepas) */
+document.addEventListener('change', async (e) => {
+  const t = e.target; if (!t || !t.matches) return;
+  if (t.matches('[data-bgsel]')){ S.bgSel = t.value; render(); pvJump(secDomId(S.data, t.value), true); return; }
+  const id = S.bgSel || 'close';
+  if (t.matches('[data-bgcolor]')){ setSecBg(id, { color:t.value }); await saveData(); render(); pvJump(secDomId(S.data, id), true); return; }
+  if (t.matches('[data-bgtone]')){ setSecBg(id, { tone:t.value === 'auto' ? '' : t.value }); await saveData(); render(); pvJump(secDomId(S.data, id), true); return; }
+});
+/* Latar bagian: lapisan gelap, perbarui pratinjau langsung */
+document.addEventListener('input', (e) => {
+  const t = e.target; if (!t || !t.matches || !t.matches('[data-bgdim]')) return;
+  const id = S.bgSel || 'close', v = Number(t.value);
+  setSecBg(id, { dim:v });
+  const lab = t.parentNode.querySelector('b'); if (lab) lab.textContent = v + '%';
+  const f = $('#pv'); if (f && f.contentDocument && f.contentDocument.documentElement) f.contentDocument.documentElement.style.setProperty('--sbd-' + id, String(v / 100));
+  clearTimeout(S._bgT); S._bgT = setTimeout(() => { saveData(); }, 700);
 });
 
 /* Simpan otomatis saat pindah kolom */
