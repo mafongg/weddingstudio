@@ -558,6 +558,8 @@ async function load(){
   if (!S.data.meta.cover) S.data.meta.cover = 'fade';
   if (!S.data.meta.nav) S.data.meta.nav = 'none';
   if (!S.data.meta.gallery) S.data.meta.gallery = 'grid';
+  if (!S.data.meta.open) S.data.meta.open = 'plain';
+  if (!S.data.meta.band) S.data.meta.band = 'plain';
   if (!S.data.meta.card) S.data.meta.card = 'plain';
   if (!S.data.meta.rsvp) S.data.meta.rsvp = 'form';
   if (S.data.meta.customTheme === undefined) S.data.meta.customTheme = null;
@@ -593,6 +595,12 @@ function renderInvitation(d, guest){
   const A = d.assets || {};
   const cu = u => 'url("' + String(u).replace(/["'()\\\s]/g, c => encodeURIComponent(c)) + '")';
   const hasBg = !!A.coverBg;
+  const openArch = d.meta.open === 'arch';
+  const bandOn = d.meta.band === 'band';
+  const seamless = openArch || bandOn || !!(A.edgeL || A.edgeR);
+  const bandColor = th.bar || mixHex(t.accent, '#000000', 0.5);
+  const rgba = (h, a) => { const n = parseInt(String(h).replace('#',''), 16) || 0;
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; };
   const isDark = (() => { const m = /^#?([0-9a-f]{6})$/i.exec(String(t.paper)); if (!m) return false;
     const n = parseInt(m[1], 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) < 110; })();
   const cornersHTML =
@@ -623,6 +631,7 @@ function renderInvitation(d, guest){
     '<button class="shot" type="button" aria-label="Enlarge photograph ' + (i+1) + '">' +
     '<img src="' + esc(u) + '" alt="Wedding photograph ' + (i+1) + '" loading="lazy"></button>').join('');
   const galClass = 'gal' + (galStyle === 'masonry' ? ' masonry' : '');
+  const carousel = galStyle === 'carousel';
 
   const giftsHTML = (d.gifts || []).map((a,i) =>
     '<article class="acct reveal"><p class="acct__b">' + esc(a.bank) + '</p>' +
@@ -725,6 +734,18 @@ function renderInvitation(d, guest){
         : '<div class="cardframe">')
     : '';
   const closeCard = useConcave ? (roseCorners ? '</div></div>' : '</div>') : '';
+  const parentsLine = p => esc([p.order, p.father && p.mother ? p.father + ' & ' + p.mother : (p.father || p.mother)].filter(Boolean).join(' '));
+  const archHTML = openArch ?
+    '<section class="sec arch-sec wide" id="opening">' + cornersHTML +
+    '<div class="archwrap" id="couple"><div class="arch"><i class="arch__f l"></i><i class="arch__f r"></i><div class="arch__tab"></div>' +
+    '<div class="arch__line"></div>' +
+    quatrefoil() +
+    (d.opening && d.opening.greeting ? '<p class="arch__g">' + esc(d.opening.greeting) + '</p>' : '') +
+    (d.opening && d.opening.text ? '<p class="arch__t">' + esc(d.opening.text) + '</p>' : '') +
+    '<h2 class="arch__n">' + esc(d.groom.short) + '</h2><p class="arch__p">' + parentsLine(d.groom) + '</p>' +
+    '<p class="arch__amp">&amp;</p>' +
+    '<h2 class="arch__n">' + esc(d.bride.short) + '</h2><p class="arch__p">' + parentsLine(d.bride) + '</p>' +
+    '</div></div></section>' : '';
 
   const css =
 '*,*::before,*::after{box-sizing:border-box}' +
@@ -755,6 +776,51 @@ function renderInvitation(d, guest){
 '.venue.dk{box-sizing:content-box;background:#F4EFE4;border-radius:14px;padding:14px 14px 8px;width:calc(72% - 28px);max-width:252px}' +
 '.mono{display:block;margin:0 auto 14px;max-height:110px;width:auto;max-width:60%}' +
 '.load__img{display:block;margin:0 auto 14px;max-height:90px;width:auto;max-width:60%}' +
+(seamless ? 'body{background:' + (A.texture ? cu(A.texture) + ' center top/520px auto,' : '') + t.paper + '}' +
+  '.paper{max-width:none!important;box-shadow:none!important;background:transparent!important;background-image:none!important;position:relative;z-index:2;overflow:visible}' +
+  '.paper>*{max-width:500px;margin-left:auto;margin-right:auto}' +
+  '.paper>.wide,.paper>.topnav,.paper>.close,.paper>.band{max-width:none}' : '') +
+((A.edgeL || A.edgeR) ? '.edge{position:fixed;top:0;bottom:0;width:clamp(56px,17vw,280px);background-repeat:repeat-y;background-size:100% auto;pointer-events:none;z-index:1}' +
+  (A.edgeL ? '.edge.l{left:0;background-image:' + cu(A.edgeL) + ';background-position:left top}' : '') +
+  (A.edgeR ? '.edge.r{right:0;background-image:' + cu(A.edgeR) + ';background-position:right top}' : '') : '') +
+(bandOn ? '.sec.band{padding:64px 22px;color:#F6E7DD;background:' +
+  (A.bandBg ? 'linear-gradient(' + rgba(bandColor, .72) + ',' + rgba(bandColor, .84) + '),' + cu(A.bandBg) + ' center/cover' : bandColor) + '}' +
+  '.band .lbl{color:#E9CFC3}' +
+  '.band .ttl{color:#FBF1E8;font-size:26px;letter-spacing:.08em;text-transform:uppercase;font-weight:400}' +
+  '.band .cd{border:0;max-width:420px;margin:30px auto 0}' +
+  '.band .u+.u{border-left:0}' +
+  '.band .u b{color:#fff;font-size:36px}' +
+  '.band .u span{color:#E2C9BE}' : '') +
+(openArch ? '.arch-sec{position:relative;padding:76px 20px 56px}' +
+  '.archwrap{position:relative;max-width:440px;margin:0 auto}' +
+  '.arch{position:relative;margin-top:46px;padding:96px 28px 72px;text-align:center;background:' + cardBg + ';border-radius:26px;' +
+    'filter:drop-shadow(0 1px 0 rgba(255,255,255,.8)) drop-shadow(0 -1px 0 rgba(0,0,0,.08)) drop-shadow(0 12px 24px rgba(60,35,30,.14))}' +
+  '.arch__tab{position:absolute;left:12%;right:12%;top:-46px;height:62px;background:' + cardBg + ';border-radius:58px 58px 0 0}' +
+  '.arch__f{position:absolute;top:-30px;width:30px;height:30px;pointer-events:none}' +
+  '.arch__f.l{left:calc(12% - 30px);background:radial-gradient(circle at 0 0,transparent 29px,' + cardBg + ' 30px)}' +
+  '.arch__f.r{right:calc(12% - 30px);background:radial-gradient(circle at 100% 0,transparent 29px,' + cardBg + ' 30px)}' +
+  '.arch__line{position:absolute;left:14px;right:14px;top:16px;bottom:14px;border:1px solid ' + t.rule + ';border-radius:18px;pointer-events:none}' +
+  '.arch .quatre{color:' + t.accent + ';width:66px;height:auto;margin:-4px auto 0;display:block;position:relative}' +
+  '.arch__g{font-family:' + t.script + ';font-size:30px;color:' + t.accent + ';margin:22px 0 0;line-height:1.1}' +
+  '.arch__t{font-size:15px;letter-spacing:.12em;line-height:1.75;color:' + t.soft + ';margin:18px auto 0;max-width:30ch}' +
+  '.arch__n{font-family:' + t.script + ';font-weight:400;font-size:clamp(54px,15vw,78px);line-height:1.05;color:' + t.accent + ';margin:34px 0 0}' +
+  '.arch__p{font-size:14px;letter-spacing:.08em;line-height:1.6;color:' + t.soft + ';margin:6px auto 0;max-width:30ch}' +
+  '.arch__amp{font-family:' + t.script + ';font-size:48px;color:' + t.accent + ';margin:18px 0 0;line-height:1}' +
+  '.arch-sec .crn{z-index:3;width:clamp(96px,30%,210px)}' +
+  '.arch-sec{padding:92px 20px 104px}' +
+  '.ev .lbl{font-size:14px;letter-spacing:.22em;color:' + t.ink + '}' +
+  '.ev__v{text-transform:uppercase;letter-spacing:.12em;font-size:16px}' : '') +
+(carousel ? '.car-sec{padding-left:0;padding-right:0}.car-sec .center{padding:0 34px}' +
+  '.car{--cw:min(72vw,320px);position:relative;margin-top:40px}' +
+  '.car__t{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:0 calc(50% - var(--cw)/2);-webkit-overflow-scrolling:touch}' +
+  '.car__t::-webkit-scrollbar{display:none}' +
+  '.car .shot,.car .shot:first-child{flex:0 0 var(--cw);width:var(--cw);aspect-ratio:3/4;scroll-snap-align:center;grid-column:auto}' +
+  '.car__b{position:absolute;top:calc(50% - 40px);width:44px;height:44px;border:0;border-radius:50%;background:rgba(255,255,255,.9);color:#222;font-size:28px;line-height:1;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.22);z-index:3}' +
+  '.car__b.p{left:12px}.car__b.n{right:12px}' +
+  '@media(min-width:900px){.car__t{padding:0 24px}.car .shot,.car .shot:first-child{scroll-snap-align:start}}' +
+  '.car__d{display:flex;justify-content:center;gap:8px;margin-top:20px}' +
+  '.car__d i{display:block;width:8px;height:8px;border-radius:50%;border:1px solid ' + t.accent + ';cursor:pointer}' +
+  '.car__d i.on{background:' + t.accent + '}' : '') +
 (hasBg ? '.cover.hasbg{background:#1a1410}' +
   '.cover.hasbg::before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.32),rgba(0,0,0,.6)),var(--coverbg) center/cover no-repeat}' +
   '.cover.hasbg::after{display:none}' +
@@ -1088,21 +1154,24 @@ function renderInvitation(d, guest){
   '<button class="btn" id="openBtn" type="button">Open Invitation</button></div>' +
 '</div></div>' +
 
+(A.edgeL ? '<div class="edge l" aria-hidden="true"></div>' : '') +
+(A.edgeR ? '<div class="edge r" aria-hidden="true"></div>' : '') +
 '<main class="paper">' +
   topnavHTML +
-  openingHTML +
-  '<section class="sec center"><p class="lbl">' + esc(d.quote.source) + '</p>' +
-  '<div class="rule"><i></i></div>' +
+  (openArch ? archHTML : openingHTML) +
+  '<section class="sec center">' +
+  '<div class="rule" style="margin-top:0"><i></i></div>' +
   '<blockquote class="vrs reveal">&ldquo;' + esc(d.quote.text) + '&rdquo;<cite>' + esc(d.quote.source) + '</cite></blockquote></section>' +
 
-  '<section class="sec" id="couple"><div class="center"><p class="lbl">The Couple</p>' +
+  ((openArch && !(d.groom.photo || d.bride.photo)) ? '' : (
+  '<section class="sec" id="' + (openArch ? 'couple2' : 'couple') + '"><div class="center"><p class="lbl">The Couple</p>' +
   '<h2 class="ttl">With the blessing<br>of our families</h2></div>' +
   openCard +
   '<div style="margin-top:44px">' + person(d.groom,'The Groom', d.groom.short.charAt(0)) +
   '<p class="link">and</p>' + person(d.bride,'The Bride', d.bride.short.charAt(0)) + '</div>' +
-  closeCard + '</section>' +
+  closeCard + '</section>')) +
 
-  '<section class="sec center" id="date"><p class="lbl">Save the Date</p>' +
+  '<section class="sec center' + (bandOn ? ' band' : '') + '" id="date"><p class="lbl">Save the Date</p>' +
   '<h2 class="ttl">' + esc((d.events[0] && d.events[0].date) || '') + '</h2>' +
   '<div class="cd" role="timer" aria-label="Time remaining">' +
   '<div class="u"><b id="cdD">000</b><span>Days</span></div>' +
@@ -1110,8 +1179,8 @@ function renderInvitation(d, guest){
   '<div class="u"><b id="cdM">00</b><span>Minutes</span></div>' +
   '<div class="u"><b id="cdS">00</b><span>Seconds</span></div></div></section>' +
 
-  '<section class="sec" id="events"><div class="center"><p class="lbl">The Day</p>' +
-  '<div class="rule"><i></i></div></div><div style="margin-top:44px">' + eventsFinal + '</div>' +
+  '<section class="sec" id="events"><div class="center">' +
+  (openArch ? '<p class="scr" style="font-size:46px">Location</p>' : '<p class="lbl">The Day</p><div class="rule"><i></i></div>') + '</div><div style="margin-top:44px">' + eventsFinal + '</div>' +
   rundownHTML +
   '</section>' +
 
@@ -1122,8 +1191,14 @@ function renderInvitation(d, guest){
   (storyHTML ? '<section class="sec" id="story"><div class="center"><p class="lbl">Our Story</p>' +
   '<h2 class="ttl">How we got here</h2></div><div style="margin-top:44px">' + storyHTML + '</div></section>' : '') +
 
-  (galleryHTML ? '<section class="sec" id="gallery"><div class="center"><p class="lbl">Gallery</p>' +
-  '<h2 class="ttl">Before the day</h2></div><div class="' + galClass + '" id="grid">' + galleryHTML + '</div></section>' : '') +
+  (galleryHTML ? (carousel
+    ? '<section class="sec wide car-sec" id="gallery"><div class="center"><p class="lbl">Gallery</p>' +
+      '<h2 class="ttl">Before the day</h2></div><div class="car"><div class="car__t" id="carT">' + galleryHTML + '</div>' +
+      '<button class="car__b p" id="carP" type="button" aria-label="Previous photo">&#8249;</button>' +
+      '<button class="car__b n" id="carN" type="button" aria-label="Next photo">&#8250;</button>' +
+      '<div class="car__d" id="carD"></div></div></section>'
+    : '<section class="sec" id="gallery"><div class="center"><p class="lbl">Gallery</p>' +
+      '<h2 class="ttl">Before the day</h2></div><div class="' + galClass + '" id="grid">' + galleryHTML + '</div></section>') : '') +
 
   ticketHTML +
 
@@ -1238,6 +1313,12 @@ function renderInvitation(d, guest){
 '[].forEach.call(document.querySelectorAll("[data-copy]"),function(b){b.addEventListener("click",function(){' +
 'var v=$("#"+b.getAttribute("data-copy")).textContent.trim();' +
 'navigator.clipboard.writeText(v).then(function(){say("Number copied")}).catch(function(){say("Copy: "+v)})})});' +
+'var cT=$("#carT");if(cT){var cs=cT.children,cD=$("#carD");' +
+'[].forEach.call(cs,function(_,i){var dt=document.createElement("i");dt.addEventListener("click",function(){cT.scrollTo({left:cs[i].offsetLeft-(cT.clientWidth-cs[i].offsetWidth)/2,behavior:"smooth"})});cD.appendChild(dt)});' +
+'function cUp(){var m=cT.scrollLeft+cT.clientWidth/2,best=0,bd=1e9;[].forEach.call(cs,function(el,i){var dd=Math.abs(el.offsetLeft+el.offsetWidth/2-m);if(dd<bd){bd=dd;best=i}});[].forEach.call(cD.children,function(x,i){x.className=i===best?"on":""})}' +
+'cT.addEventListener("scroll",function(){cancelAnimationFrame(cT._r);cT._r=requestAnimationFrame(cUp)});cUp();' +
+'$("#carP").addEventListener("click",function(){cT.scrollBy({left:-(cs[0].offsetWidth+8),behavior:"smooth"})});' +
+'$("#carN").addEventListener("click",function(){cT.scrollBy({left:cs[0].offsetWidth+8,behavior:"smooth"})})}' +
 'var lb=$("#lb"),lbi=$("#lbi"),op=null;' +
 '[].forEach.call(document.querySelectorAll(".shot"),function(b){b.addEventListener("click",function(){' +
 'var im=b.querySelector("img");if(!im)return;op=b;lbi.src=im.src;lbi.alt=im.alt;lb.classList.add("on");document.body.classList.add("lock");$("#lbx").focus()})});' +
@@ -1505,6 +1586,9 @@ const ASSET_SLOTS = [
   { k:'cornerBR', t:'Bunga pojok kanan bawah', h:'PNG transparan. Muncul di pojok cover dan penutup.', png:true, w:900 },
   { k:'monogram', t:'Monogram / logo',    h:'PNG transparan. Muncul di layar loading dan atas cover.', png:true, w:600 },
   { k:'divider',  t:'Pembatas antar bagian', h:'PNG transparan, bentuk lebar (ornamen garis atau bunga kecil).', png:true, w:800 },
+  { k:'edgeL',    t:'Bunga tepi kiri',    h:'PNG transparan, bentuk tinggi (strip vertikal). Menempel di tepi kiri layar dan diam saat di-scroll.', png:true, w:700 },
+  { k:'edgeR',    t:'Bunga tepi kanan',   h:'PNG transparan, bentuk tinggi. Menempel di tepi kanan layar.', png:true, w:700 },
+  { k:'bandBg',   t:'Latar pita hitung mundur', h:'Foto atau tekstur di balik pita warna hitung mundur (ditutup lapisan warna tema).', png:false, w:1600 },
   { k:'texture',  t:'Tekstur latar',      h:'Kain atau kertas. Diulang (tile) di belakang isi undangan.', png:false, w:800 },
   { k:'venue1',   t:'Ilustrasi tempat acara 1', h:'Misalnya gereja. Latar kertas krem otomatis dihapus. Lebar minimal 600px.', png:true, w:900, paper:true },
   { k:'venue2',   t:'Ilustrasi tempat acara 2', h:'Misalnya hotel / gedung resepsi. Latar kertas krem otomatis dihapus.', png:true, w:900, paper:true }
@@ -1760,8 +1844,17 @@ function viewTheme(){
     '<p class="hint" style="margin-top:12px">Klik <b>Buka di Tab Baru</b> untuk melihat animasinya berjalan penuh.</p></div>' +
 
     '<div class="card"><div class="card__t">Tata Letak</div><div class="grid g2">' +
+      '<div class="f"><label>Halaman pembuka</label><select data-path="meta.open">' +
+        '<option value="plain"' + (S.data.meta.open !== 'arch' ? ' selected' : '') + '>Standar</option>' +
+        '<option value="arch"' + (S.data.meta.open === 'arch' ? ' selected' : '') + '>Kartu lengkung (nama mempelai besar)</option>' +
+      '</select></div>' +
+      '<div class="f"><label>Hitung mundur</label><select data-path="meta.band">' +
+        '<option value="plain"' + (S.data.meta.band !== 'band' ? ' selected' : '') + '>Polos</option>' +
+        '<option value="band"' + (S.data.meta.band === 'band' ? ' selected' : '') + '>Pita warna selebar layar</option>' +
+      '</select></div>' +
       '<div class="f"><label>Galeri</label><select data-path="meta.gallery">' +
-        '<option value="grid"' + (S.data.meta.gallery !== 'masonry' ? ' selected' : '') + '>Kotak rapi (grid)</option>' +
+        '<option value="carousel"' + (S.data.meta.gallery === 'carousel' ? ' selected' : '') + '>Carousel geser (panah + titik)</option>' +
+        '<option value="grid"' + (S.data.meta.gallery !== 'masonry' && S.data.meta.gallery !== 'carousel' ? ' selected' : '') + '>Kotak rapi (grid)</option>' +
         '<option value="masonry"' + (S.data.meta.gallery === 'masonry' ? ' selected' : '') + '>Masonry (tinggi tidak rata)</option>' +
       '</select></div>' +
       '<div class="f"><label>Navigasi</label><select data-path="meta.nav">' +
@@ -2683,7 +2776,9 @@ document.addEventListener('click', async (e) => {
       S.data.meta.cover = 'rose';
       S.data.meta.card = 'framed';
       S.data.meta.rsvp = 'buttons';
-      S.data.meta.gallery = 'masonry';
+      S.data.meta.gallery = 'carousel';
+      S.data.meta.open = 'arch';
+      S.data.meta.band = 'band';
       S.data.meta.nav = 'top';
     }
     await saveData(); render();
