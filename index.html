@@ -4,9 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Wedding Studio</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Jost:wght@300;400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet">
 <style>
 /* ==========================================================
    ADMIN SHELL
@@ -18,8 +15,8 @@
   --line:#E2DED5; --line-2:#EFECE4;
   --ok:#2F6B4F; --warn:#96702A; --bad:#9E4433;
   --r:10px;
-  --f:'Jost',system-ui,sans-serif;
-  --fs:'Cormorant Garamond',Georgia,serif;
+  --f:Arial,Helvetica,'Segoe UI',sans-serif;
+  --fs:Arial,Helvetica,'Segoe UI',sans-serif;
 }
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
@@ -180,7 +177,7 @@ tbody tr:hover{background:var(--surface-2)}
 .theme{border:1px solid var(--line);border-radius:10px;padding:0;overflow:hidden;background:#fff;cursor:pointer;text-align:left;transition:border-color .2s,transform .2s}
 .theme:hover{transform:translateY(-2px)}
 .theme.on{border-color:var(--brand);box-shadow:0 0 0 3px rgba(44,64,52,.1)}
-.theme__sw{height:82px;display:grid;place-items:center;font-family:'Pinyon Script',cursive;font-size:25px}
+.theme__sw{height:82px;display:grid;place-items:center;font-family:Arial,Helvetica,sans-serif;font-size:25px}
 .theme__m{padding:11px 13px}
 .theme__m b{display:block;font-size:13px;font-weight:500}
 .theme__m span{font-size:11px;color:var(--ink-3)}
@@ -389,25 +386,21 @@ const seed = () => ({
 /* ============================================================
    3. TEMA UNDANGAN
    ============================================================ */
+const SIMPLE_FONT = "Arial,Helvetica,'Segoe UI',sans-serif";
 const FONTSETS = {
-  cormorant: { display:"'Cormorant Garamond',Georgia,serif", script:"'Pinyon Script',cursive", util:"'Jost',sans-serif",
-    q:'Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Pinyon+Script&family=Jost:wght@300;400;500' },
-  playfair:  { display:"'Playfair Display',Georgia,serif", script:"'Parisienne',cursive", util:"'Montserrat',sans-serif",
-    q:'Playfair+Display:ital,wght@0,400;0,500;1,400&family=Parisienne&family=Montserrat:wght@300;400;500' },
-  marcellus: { display:"'Marcellus',Georgia,serif", script:"'Marcellus',serif", util:"'Josefin Sans',sans-serif",
-    q:'Marcellus&family=Josefin+Sans:wght@300;400;500' },
-  lora:      { display:"'Lora',Georgia,serif", script:"'Great Vibes',cursive", util:"'Jost',sans-serif",
-    q:'Lora:ital,wght@0,400;0,500;1,400&family=Great+Vibes&family=Jost:wght@300;400;500' },
-  cinzel:    { display:"'Cinzel',Georgia,serif", script:"'Cormorant Garamond',serif", util:"'Jost',sans-serif",
-    q:'Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@300;400;500' }
+  cormorant: { display:SIMPLE_FONT, script:SIMPLE_FONT, util:SIMPLE_FONT, q:'' },
+  playfair:  { display:SIMPLE_FONT, script:SIMPLE_FONT, util:SIMPLE_FONT, q:'' },
+  marcellus: { display:SIMPLE_FONT, script:SIMPLE_FONT, util:SIMPLE_FONT, q:'' },
+  lora:      { display:SIMPLE_FONT, script:SIMPLE_FONT, util:SIMPLE_FONT, q:'' },
+  cinzel:    { display:SIMPLE_FONT, script:SIMPLE_FONT, util:SIMPLE_FONT, q:'' }
 };
 
 const FONTLABEL = {
-  cormorant: 'Cormorant Garamond + Pinyon Script',
-  playfair:  'Playfair Display + Parisienne',
-  marcellus: 'Marcellus + Josefin Sans (tanpa skrip)',
-  lora:      'Lora + Great Vibes',
-  cinzel:    'Cinzel + Cormorant Garamond'
+  cormorant: 'Arial (Simple)',
+  playfair:  'Arial (Simple)',
+  marcellus: 'Arial (Simple)',
+  lora:      'Arial (Simple)',
+  cinzel:    'Arial (Simple)'
 };
 
 const THEMES = {
@@ -1248,11 +1241,11 @@ function renderInvitation(d, guest){
     'var c=document.createElement("canvas");c.width=520;c.height=680;var x=c.getContext("2d");' +
     'x.fillStyle="#ffffff";x.fillRect(0,0,520,680);' +
     'x.fillStyle="#111111";x.textAlign="center";' +
-    'x.font="600 20px Jost, sans-serif";x.fillText("ENTRY PASS",260,72);' +
+    'x.font="600 20px Arial, sans-serif";x.fillText("ENTRY PASS",260,72);' +
     'x.font="30px Georgia, serif";x.fillText(n,260,120);' +
     'var qi=new Image();qi.onload=function(){x.drawImage(qi,110,160,300,300);' +
-      'x.font="600 34px Jost, sans-serif";x.fillText(tcode,260,520);' +
-      'x.font="16px Jost, sans-serif";x.fillStyle="#666";x.fillText("Show this at the door",260,560);' +
+      'x.font="600 34px Arial, sans-serif";x.fillText(tcode,260,520);' +
+      'x.font="16px Arial, sans-serif";x.fillStyle="#666";x.fillText("Show this at the door",260,560);' +
       'var a2=document.createElement("a");a2.download="wedding-ticket-"+tcode+".png";a2.href=c.toDataURL("image/png");' +
       'document.body.appendChild(a2);a2.click();a2.remove()};qi.src=src;' +
   '})}}});' +
@@ -1276,9 +1269,6 @@ function renderInvitation(d, guest){
                 '<meta name="twitter:card" content="summary_large_image">' +
                 '<meta name="twitter:image" content="' + esc(og.image) + '">' : '') +
     '<meta name="theme-color" content="' + t.paper + '">' +
-    '<link rel="preconnect" href="https://fonts.googleapis.com">' +
-    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
-    '<link href="https://fonts.googleapis.com/css2?family=' + fs.q + '&display=swap" rel="stylesheet">' +
     '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>' +
     '<style>' + css + '</style></head><body>' + body +
     '<script>' + script + '<\/script></body></html>';
