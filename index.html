@@ -211,6 +211,16 @@ tbody tr:hover{background:var(--surface-2)}
 /* Preview */
 .preview{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:#fff;height:640px}
 .preview iframe{width:100%;height:100%;border:0;display:block}
+.tplgrid{display:grid;grid-template-columns:minmax(0,1fr) 392px;gap:22px;align-items:start}
+.tplmain{min-width:0}
+.tplpv{position:sticky;top:14px}
+.tplpv .preview{height:min(740px,calc(100vh - 190px))}
+.pvbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+@media(max-width:1280px){.tplgrid{grid-template-columns:1fr}.tplpv{position:static}.tplpv .preview{height:640px}}
+.acfg{display:grid;gap:8px;margin:12px 0 0}
+.acfg__r{display:grid;grid-template-columns:92px 1fr 46px;align-items:center;gap:8px;font-size:12px;color:var(--ink-2)}
+.acfg__r b{font-weight:500;text-align:right;color:var(--ink)}
+.acfg input[type=range]{width:100%;accent-color:var(--brand)}
 
 /* Modal */
 .modal{position:fixed;inset:0;z-index:300;display:none;place-items:center;padding:18px;background:rgba(34,42,36,.5)}
@@ -555,6 +565,7 @@ async function load(){
   ['opening','og'].forEach(k => { if (!S.data[k]) S.data[k] = base[k]; });
   ['hosts','rundown'].forEach(k => { if (!Array.isArray(S.data[k])) S.data[k] = base[k]; });
   if (!S.data.assets || typeof S.data.assets !== 'object') S.data.assets = {};
+  if (!S.data.assetCfg || typeof S.data.assetCfg !== 'object') S.data.assetCfg = {};
   if (!S.data.meta.cover) S.data.meta.cover = 'fade';
   if (!S.data.meta.nav) S.data.meta.nav = 'none';
   if (!S.data.meta.gallery) S.data.meta.gallery = 'grid';
@@ -612,7 +623,7 @@ function renderInvitation(d, guest){
   const showBuildings = (d.meta.theme === 'burgundy');
   const eventsHTML = (d.events || []).map((e,i) =>
     '<article class="ev reveal">' +
-      (A['venue' + (i === 0 ? 1 : 2)] ? '<img class="venue' + (isDark ? ' dk' : '') + '" src="' + esc(A['venue' + (i === 0 ? 1 : 2)]) + '" alt="">'
+      (A['venue' + (i === 0 ? 1 : 2)] ? '<img class="vimg v' + (i === 0 ? 1 : 2) + (isDark ? ' dk' : '') + '" src="' + esc(A['venue' + (i === 0 ? 1 : 2)]) + '" alt="">'
         : showBuildings ? '<div class="bldg-slot" data-b="' + (i === 0 ? 'short' : 'tall') + '"></div>' : '') +
       '<p class="lbl">' + esc(e.kind) + '</p>' +
       '<p class="ev__d">' + esc(e.date) + '</p>' +
@@ -749,6 +760,7 @@ function renderInvitation(d, guest){
 
   const css =
 '*,*::before,*::after{box-sizing:border-box}' +
+':root{' + assetVars(d).map(v => v[0] + ':' + v[1]).join(';') + '}' +
 'html{scroll-behavior:smooth}' +
 'body{margin:0;background:' + t.paper2 + ';color:' + t.ink + ';font-family:' + t.display + ';font-size:18px;line-height:1.75;-webkit-font-smoothing:antialiased;overflow-x:hidden}' +
 'body.lock{overflow:hidden;height:100dvh}' +
@@ -767,24 +779,27 @@ function renderInvitation(d, guest){
 '.rule{display:flex;align-items:center;gap:12px;justify-content:center;margin:22px auto 0;max-width:190px}' +
 '.rule::before,.rule::after{content:"";flex:1;height:1px;background:' + t.rule + '}' +
 '.rule i{width:7px;height:7px;border:1px solid ' + t.accent + ';transform:rotate(45deg)}' +
-(A.divider ? '.rule{display:block;max-width:240px;height:44px;margin:18px auto 0;background:' + cu(A.divider) + ' center/contain no-repeat}.rule::before,.rule::after,.rule i{display:none}' : '') +
-(A.texture ? '.paper{background-image:' + cu(A.texture) + ';background-size:520px auto}' : '') +
+(A.divider ? '.rule{display:block;max-width:calc(240px*var(--a-divider-s));height:calc(44px*var(--a-divider-s));margin:18px auto 0;background:' + cu(A.divider) + ' center/contain no-repeat;transform:translate(var(--a-divider-x),var(--a-divider-y));opacity:var(--a-divider-o)}.rule::before,.rule::after,.rule i{display:none}' : '') +
+(A.texture ? '.paper{background-image:' + cu(A.texture) + ';background-size:calc(520px*var(--a-texture-s)) auto}' : '') +
 '.crn{position:absolute;width:clamp(120px,40%,210px);height:auto;pointer-events:none;z-index:2}' +
-'.crn.tl{top:0;left:0}.crn.br{bottom:0;right:0}' +
+'.crn.tl{top:0;left:0;transform-origin:0 0;transform:translate(var(--a-cornerTL-x),var(--a-cornerTL-y)) scale(var(--a-cornerTL-s));opacity:var(--a-cornerTL-o)}' +
+'.crn.br{bottom:0;right:0;transform-origin:100% 100%;transform:translate(var(--a-cornerBR-x),var(--a-cornerBR-y)) scale(var(--a-cornerBR-s));opacity:var(--a-cornerBR-o)}' +
 '.close{position:relative;overflow:hidden}' +
-'.venue{display:block;margin:0 auto 20px;width:72%;max-width:280px;height:auto}' +
-'.venue.dk{box-sizing:content-box;background:#F4EFE4;border-radius:14px;padding:14px 14px 8px;width:calc(72% - 28px);max-width:252px}' +
-'.mono{display:block;margin:0 auto 14px;max-height:110px;width:auto;max-width:60%}' +
+'.vimg{display:block;margin:0 auto 20px;height:auto}' +
+['1','2'].map(n => '.vimg.v' + n + '{width:calc(72%*var(--a-venue' + n + '-s));max-width:calc(280px*var(--a-venue' + n + '-s));transform:translate(var(--a-venue' + n + '-x),var(--a-venue' + n + '-y));opacity:var(--a-venue' + n + '-o)}' +
+  '.vimg.dk.v' + n + '{box-sizing:content-box;background:#F4EFE4;border-radius:14px;padding:14px 14px 8px;width:calc((72% - 28px)*var(--a-venue' + n + '-s));max-width:calc(252px*var(--a-venue' + n + '-s))}').join('') +
+'.mono{display:block;margin:0 auto 14px;width:auto;max-height:calc(110px*var(--a-monogram-s));max-width:calc(60%*var(--a-monogram-s));transform:translate(var(--a-monogram-x),var(--a-monogram-y));opacity:var(--a-monogram-o)}' +
 '.load__img{display:block;margin:0 auto 14px;max-height:90px;width:auto;max-width:60%}' +
-(seamless ? 'body{background:' + (A.texture ? cu(A.texture) + ' center top/520px auto,' : '') + t.paper + '}' +
+(seamless ? 'body{background:' + (A.texture ? cu(A.texture) + ' center top/calc(520px*var(--a-texture-s)) auto,' : '') + t.paper + '}' +
   '.paper{max-width:none!important;box-shadow:none!important;background:transparent!important;background-image:none!important;position:relative;z-index:2;overflow:visible}' +
   '.paper>*{max-width:500px;margin-left:auto;margin-right:auto}' +
   '.paper>.wide,.paper>.topnav,.paper>.close,.paper>.band{max-width:none}' : '') +
-((A.edgeL || A.edgeR) ? '.edge{position:fixed;top:0;bottom:0;width:clamp(56px,17vw,280px);background-repeat:repeat-y;background-size:100% auto;pointer-events:none;z-index:1}' +
-  (A.edgeL ? '.edge.l{left:0;background-image:' + cu(A.edgeL) + ';background-position:left top}' : '') +
-  (A.edgeR ? '.edge.r{right:0;background-image:' + cu(A.edgeR) + ';background-position:right top}' : '') : '') +
-(bandOn ? '.sec.band{padding:64px 22px;color:#F6E7DD;background:' +
-  (A.bandBg ? 'linear-gradient(' + rgba(bandColor, .72) + ',' + rgba(bandColor, .84) + '),' + cu(A.bandBg) + ' center/cover' : bandColor) + '}' +
+((A.edgeL || A.edgeR) ? '.edge{position:fixed;top:0;bottom:0;background-repeat:repeat-y;background-size:100% auto;pointer-events:none;z-index:1}' +
+  (A.edgeL ? '.edge.l{left:var(--a-edgeL-x);width:calc(clamp(56px,17vw,280px)*var(--a-edgeL-s));opacity:var(--a-edgeL-o);background-image:' + cu(A.edgeL) + ';background-position:0 var(--a-edgeL-y)}' : '') +
+  (A.edgeR ? '.edge.r{right:calc(var(--a-edgeR-x)*-1);width:calc(clamp(56px,17vw,280px)*var(--a-edgeR-s));opacity:var(--a-edgeR-o);background-image:' + cu(A.edgeR) + ';background-position:100% var(--a-edgeR-y)}' : '') : '') +
+(bandOn ? '.sec.band{position:relative;overflow:hidden;padding:64px 22px;color:#F6E7DD;background:' + bandColor + '}' +
+  (A.bandBg ? '.sec.band::before{content:"";position:absolute;inset:0;background:' + cu(A.bandBg) + ' center/cover no-repeat;opacity:var(--a-bandBg-o);transform:scale(var(--a-bandBg-s))}' : '') +
+  '.sec.band>*{position:relative}' +
   '.band .lbl{color:#E9CFC3}' +
   '.band .ttl{color:#FBF1E8;font-size:26px;letter-spacing:.08em;text-transform:uppercase;font-weight:400}' +
   '.band .cd{border:0;max-width:420px;margin:30px auto 0}' +
@@ -822,8 +837,8 @@ function renderInvitation(d, guest){
   '.car__d i{display:block;width:8px;height:8px;border-radius:50%;border:1px solid ' + t.accent + ';cursor:pointer}' +
   '.car__d i.on{background:' + t.accent + '}' : '') +
 (hasBg ? '.cover.hasbg{background:#1a1410}' +
-  '.cover.hasbg::before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.32),rgba(0,0,0,.6)),var(--coverbg) center/cover no-repeat}' +
-  '.cover.hasbg::after{display:none}' +
+  '.cover.hasbg::before{content:"";position:absolute;inset:0;background:var(--coverbg) var(--a-coverBg-x) var(--a-coverBg-y)/cover no-repeat;transform:scale(var(--a-coverBg-s));transform-origin:var(--a-coverBg-x) var(--a-coverBg-y)}' +
+  '.cover.hasbg::after{content:"";display:block!important;position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.8));opacity:var(--a-coverBg-o);mix-blend-mode:normal!important;pointer-events:none}' +
   '.cover.hasbg .frame{z-index:3;border:0;background:transparent;box-shadow:none}' +
   '.cover.hasbg .frame::before,.cover.hasbg .frame::after{display:none}' +
   '.cover.hasbg .scr,.cover.hasbg .cv__d,.cover.hasbg .gst__l,.cover.hasbg .gst__n,.cover.hasbg .cv__n,.cover.hasbg .cv__n .and{color:#FBF4EC}' +
@@ -1572,7 +1587,7 @@ function fld(label, path, type, hint){
         '<div class="ph__a"><button class="b b--line b--sm" data-pick="' + path + '">' + icon('plus') + 'Unggah Foto</button>' +
         (has ? '<button class="b b--sm b--bad" data-clear="' + path + '">' + icon('trash') + 'Hapus</button>' : '') +
         '<p class="hint" style="margin:0">Otomatis dikecilkan ke maks 1400px. ' +
-        (has ? Math.round(String(v).length / 1400) + ' KB tersimpan.' : 'JPG atau PNG.') + '</p></div>' +
+        (has ? (String(v).indexOf('data:') === 0 ? Math.round(String(v).length / 1400) + ' KB tersimpan di data.' : 'Tersimpan online.') : 'JPG atau PNG.') + '</p></div>' +
       '</div>' + h + '</div>';
   }
 
@@ -1580,18 +1595,38 @@ function fld(label, path, type, hint){
 }
 
 /* Unggah + kompresi di sisi browser — tidak perlu server */
+const CTL = {
+  s:{ min:30,   max:250, def:100, label:'Ukuran',            unit:'%'  },
+  x:{ min:-200, max:200, def:0,   label:'Geser kiri / kanan', unit:'px' },
+  y:{ min:-200, max:200, def:0,   label:'Geser atas / bawah', unit:'px' },
+  o:{ min:10,   max:100, def:100, label:'Transparansi',       unit:'%'  }
+};
+function ctlDef(sl, c){ return Object.assign({}, CTL[c], (sl.ov && sl.ov[c]) || {}); }
+function assetVar(sl, c, raw){
+  const df = ctlDef(sl, c);
+  let v = (raw === undefined || raw === null || raw === '' || isNaN(Number(raw))) ? df.def : Number(raw);
+  v = Math.max(df.min, Math.min(df.max, v));
+  const css = (c === 's' || c === 'o') ? String(v / 100) : v + (df.unit === '%' ? '%' : 'px');
+  return ['--a-' + sl.k + '-' + c, css];
+}
+function assetVars(d){
+  const AC = (d && d.assetCfg) || {}, out = [];
+  ASSET_SLOTS.forEach(sl => (sl.ctl || '').split('').forEach(c => out.push(assetVar(sl, c, (AC[sl.k] || {})[c]))));
+  return out;
+}
+
 const ASSET_SLOTS = [
-  { k:'coverBg',  t:'Latar cover',        h:'Foto besar di belakang halaman pembuka (JPG, portrait paling bagus).', png:false, w:1600 },
-  { k:'cornerTL', t:'Bunga pojok kiri atas',  h:'PNG transparan. Muncul di pojok cover dan penutup.', png:true, w:900 },
-  { k:'cornerBR', t:'Bunga pojok kanan bawah', h:'PNG transparan. Muncul di pojok cover dan penutup.', png:true, w:900 },
-  { k:'monogram', t:'Monogram / logo',    h:'PNG transparan. Muncul di layar loading dan atas cover.', png:true, w:600 },
-  { k:'divider',  t:'Pembatas antar bagian', h:'PNG transparan, bentuk lebar (ornamen garis atau bunga kecil).', png:true, w:800 },
-  { k:'edgeL',    t:'Bunga tepi kiri',    h:'PNG transparan, bentuk tinggi (strip vertikal). Menempel di tepi kiri layar dan diam saat di-scroll.', png:true, w:700 },
-  { k:'edgeR',    t:'Bunga tepi kanan',   h:'PNG transparan, bentuk tinggi. Menempel di tepi kanan layar.', png:true, w:700 },
-  { k:'bandBg',   t:'Latar pita hitung mundur', h:'Foto atau tekstur di balik pita warna hitung mundur (ditutup lapisan warna tema).', png:false, w:1600 },
-  { k:'texture',  t:'Tekstur latar',      h:'Kain atau kertas. Diulang (tile) di belakang isi undangan.', png:false, w:800 },
-  { k:'venue1',   t:'Ilustrasi tempat acara 1', h:'Misalnya gereja. Latar kertas krem otomatis dihapus. Lebar minimal 600px.', png:true, w:900, paper:true },
-  { k:'venue2',   t:'Ilustrasi tempat acara 2', h:'Misalnya hotel / gedung resepsi. Latar kertas krem otomatis dihapus.', png:true, w:900, paper:true }
+  { k:'coverBg',  t:'Latar cover',        h:'Foto besar di belakang halaman pembuka (JPG, portrait paling bagus).', png:false, w:1600, ctl:'sxyo', ov:{ s:{min:100,max:250,label:'Zoom foto'}, x:{min:0,max:100,def:50,label:'Titik fokus kiri / kanan',unit:'%'}, y:{min:0,max:100,def:50,label:'Titik fokus atas / bawah',unit:'%'}, o:{min:0,max:100,def:75,label:'Lapisan gelap',unit:'%'} } },
+  { k:'cornerTL', t:'Bunga pojok kiri atas',  h:'PNG transparan. Muncul di pojok cover dan penutup.', png:true, w:900, ctl:'sxyo' },
+  { k:'cornerBR', t:'Bunga pojok kanan bawah', h:'PNG transparan. Muncul di pojok cover dan penutup.', png:true, w:900, ctl:'sxyo' },
+  { k:'monogram', t:'Monogram / logo',    h:'PNG transparan. Muncul di layar loading dan atas cover.', png:true, w:600, ctl:'sxyo' },
+  { k:'divider',  t:'Pembatas antar bagian', h:'PNG transparan, bentuk lebar (ornamen garis atau bunga kecil).', png:true, w:800, ctl:'sxyo', ov:{ y:{min:-100,max:100} } },
+  { k:'edgeL',    t:'Bunga tepi kiri',    h:'PNG transparan, bentuk tinggi (strip vertikal). Menempel di tepi kiri layar dan diam saat di-scroll.', png:true, w:700, ctl:'sxyo', ov:{ s:{min:40,max:250}, y:{min:-400,max:400} } },
+  { k:'edgeR',    t:'Bunga tepi kanan',   h:'PNG transparan, bentuk tinggi. Menempel di tepi kanan layar.', png:true, w:700, ctl:'sxyo', ov:{ s:{min:40,max:250}, y:{min:-400,max:400} } },
+  { k:'bandBg',   t:'Latar pita hitung mundur', h:'Foto atau tekstur di balik pita warna hitung mundur (ditutup lapisan warna tema).', png:false, w:1600, ctl:'so', ov:{ s:{min:100,max:250,label:'Zoom foto'}, o:{min:0,max:100,def:22,label:'Kekuatan foto'} } },
+  { k:'texture',  t:'Tekstur latar',      h:'Kain atau kertas. Diulang (tile) di belakang isi undangan.', png:false, w:800, ctl:'s', ov:{ s:{min:40,max:250,label:'Ukuran pola'} } },
+  { k:'venue1',   t:'Ilustrasi tempat acara 1', h:'Misalnya gereja. Latar kertas krem otomatis dihapus. Lebar minimal 600px.', png:true, w:900, paper:true, ctl:'sxyo', ov:{ s:{min:40,max:160} } },
+  { k:'venue2',   t:'Ilustrasi tempat acara 2', h:'Misalnya hotel / gedung resepsi. Latar kertas krem otomatis dihapus.', png:true, w:900, paper:true, ctl:'sxyo', ov:{ s:{min:40,max:160} } }
 ];
 
 /* Hapus latar kertas terang jadi transparan (color-to-alpha). Mengubah px di tempat.
@@ -1669,34 +1704,51 @@ function pickAsset(slot, cb){
   inp.click();
 }
 
-function pickImage(cb, maxW){
+function loadImageFile(f){
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onerror = rej;
+    r.onload = () => { const img = new Image(); img.onload = () => res(img); img.onerror = rej; img.src = String(r.result); };
+    r.readAsDataURL(f);
+  });
+}
+
+/* Kecilkan foto, unggah ke Supabase Storage (kalau tersedia), kembalikan URL.
+   Cadangan: data URL kecil di dalam data (mode lokal). */
+async function processPhoto(f, lim){
+  const img = await loadImageFile(f);
+  const scale = Math.min(1, lim / img.width);
+  const c = document.createElement('canvas');
+  c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+  const x = c.getContext('2d');
+  x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+  x.drawImage(img, 0, 0, c.width, c.height);
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.82));
+  if (blob){
+    const url = await Store.upload('photos/' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7) + '.jpg', blob, 'image/jpeg');
+    if (url) return url;
+  }
+  let out = c.toDataURL('image/jpeg', 0.74);
+  if (out.length > 900000) out = c.toDataURL('image/jpeg', 0.58);
+  return out;
+}
+
+function pickImage(cb, maxW, opts){
+  opts = opts || {};
   const inp = document.createElement('input');
   inp.type = 'file'; inp.accept = 'image/*';
-  inp.addEventListener('change', () => {
-    const f = inp.files && inp.files[0];
-    if (!f) return;
-    if (!/^image\//.test(f.type)) { toast('Berkas itu bukan gambar.'); return; }
-    toast('Memproses gambar...');
-    const r = new FileReader();
-    r.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const lim = maxW || 1400;
-        const scale = Math.min(1, lim / img.width);
-        const c = document.createElement('canvas');
-        c.width  = Math.round(img.width  * scale);
-        c.height = Math.round(img.height * scale);
-        const x = c.getContext('2d');
-        x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
-        x.drawImage(img, 0, 0, c.width, c.height);
-        let out = c.toDataURL('image/jpeg', 0.74);
-        if (out.length > 900000) out = c.toDataURL('image/jpeg', 0.58);
-        cb(out);
-      };
-      img.onerror = () => toast('Gambar tidak terbaca.');
-      img.src = String(r.result);
-    };
-    r.readAsDataURL(f);
+  if (opts.multiple) inp.multiple = true;
+  inp.addEventListener('change', async () => {
+    const all = Array.from(inp.files || []);
+    const files = all.filter(f => /^image\//.test(f.type));
+    if (!files.length){ if (all.length) toast('Berkas itu bukan gambar.'); return; }
+    let n = 0;
+    for (let i = 0; i < files.length; i++){
+      toast('Memproses foto ' + (i + 1) + (files.length > 1 ? ' dari ' + files.length : '') + '...');
+      try { const url = await processPhoto(files[i], maxW || 1400); await cb(url); n++; }
+      catch (e) { toast('Foto tidak terbaca: ' + files[i].name); }
+    }
+    if (opts.done) await opts.done(n, files.length);
   });
   inp.click();
 }
@@ -1778,7 +1830,9 @@ function viewContent(){
       '<button class="b b--line" data-add="hosts">' + icon('plus') + 'Tambah Nama</button></div>' +
 
     '<div class="card"><div class="card__t">Galeri</div>' + (gal || '<p style="color:var(--ink-3);margin:0 0 14px">Belum ada foto.</p>') +
-      '<button class="b b--line" data-add="gallery">' + icon('plus') + 'Tambah Foto</button></div>' +
+      '<div class="row"><button class="b" data-galmulti>' + icon('plus') + 'Unggah Banyak Foto</button>' +
+      '<button class="b b--line" data-add="gallery">' + icon('plus') + 'Tambah Satu Slot</button></div>' +
+      '<p class="hint" style="margin:10px 0 0">Pilih banyak foto sekaligus. Otomatis dikecilkan dan disimpan online supaya undangan tetap cepat dibuka.</p></div>' +
 
     '<div class="card"><div class="card__t">Pratinjau WhatsApp</div>' +
       '<p style="margin:-6px 0 14px;color:var(--ink-2)">Yang muncul saat link dikirim di WhatsApp, Telegram, atau Instagram. ' +
@@ -1832,6 +1886,7 @@ function viewTheme(){
 
   return '<div class="head"><div><h1>Template</h1>' +
     '<p>Satu konten, banyak tampilan. Ganti kapan saja tanpa mengetik ulang apa pun.</p></div></div>' +
+    '<div class="tplgrid"><div class="tplmain">' +
     '<div class="card"><div class="card__t">Pilih Tampilan</div><div class="themes">' + cards + '</div></div>' +
 
     customEditor +
@@ -1871,12 +1926,13 @@ function viewTheme(){
       '</select></div></div></div>' +
 
     assetsCard() +
-
-    '<div class="card"><div class="card__t">Pratinjau Langsung</div>' +
+    '</div><aside class="tplpv"><div class="card"><div class="card__t">Pratinjau Langsung</div>' +
+    '<div class="pvbar">' + [['cover','Cover'],['opening','Pembuka'],['date','Hitung mundur'],['events','Acara'],['gallery','Galeri']].map(x =>
+      '<button class="b b--sm b--line" data-pvgo="' + x[0] + '">' + x[1] + '</button>').join('') + '</div>' +
     '<div class="preview"><iframe id="pv" title="Pratinjau undangan"></iframe></div>' +
     '<div class="row" style="margin-top:14px">' +
-    '<button class="b" data-export>' + icon('down') + 'Unduh Undangan (HTML)</button>' +
-    '<button class="b b--line" data-preview>' + icon('eye') + 'Buka di Tab Baru</button></div></div>';
+    '<button class="b" data-export>' + icon('down') + 'Unduh (HTML)</button>' +
+    '<button class="b b--line" data-preview>' + icon('eye') + 'Tab Baru</button></div></div></aside></div>';
 }
 
 function assetsCard(){
@@ -1889,7 +1945,13 @@ function assetsCard(){
          : '<div class="ph__t ph__e" style="height:110px;margin-bottom:10px">Belum ada</div>') +
       '<p class="hint" style="margin:0 0 10px">' + sl.h + '</p>' +
       '<div class="row"><button class="b b--line b--sm" data-aslot="' + sl.k + '">' + icon('plus') + (u ? 'Ganti' : 'Unggah') + '</button>' +
-      (u ? '<button class="b b--sm b--bad" data-aclear="' + sl.k + '">' + icon('trash') + 'Hapus</button>' : '') + '</div></div>';
+      (u ? '<button class="b b--sm b--bad" data-aclear="' + sl.k + '">' + icon('trash') + 'Hapus</button>' : '') + '</div>' +
+      ((u && sl.ctl) ? '<div class="acfg">' + sl.ctl.split('').map(c => {
+        const df = ctlDef(sl, c), cur = Number(assetVar(sl, c, ((S.data.assetCfg || {})[sl.k] || {})[c])[1].replace(/[^0-9.\-]/g, '')) ;
+        const val = (c === 's' || c === 'o') ? Math.round(cur * 100) : cur;
+        return '<label class="acfg__r"><span>' + df.label + '</span><input type="range" min="' + df.min + '" max="' + df.max + '" step="1" value="' + val +
+          '" data-acfg="' + sl.k + ':' + c + '"><b>' + val + df.unit + '</b></label>';
+      }).join('') + '<div><button class="b b--sm b--line" data-acreset="' + sl.k + '">Kembalikan ukuran &amp; posisi</button></div></div>' : '') + '</div>';
   }).join('');
   return '<div class="card"><div class="card__t">Aset Desain</div>' +
     '<p style="margin:0 0 14px;color:var(--ink-2)">Unggah gambar ke slot yang Anda mau. Slot yang kosong otomatis dilewati, jadi undangan tetap rapi.</p>' +
@@ -2731,6 +2793,15 @@ document.addEventListener('click', async (e) => {
     toast('Animasi: ' + COVERS[S.data.meta.cover].name); return;
   }
 
+  if (el('[data-galmulti]')){
+    S.data.gallery = S.data.gallery || [];
+    pickImage(async (url) => { S.data.gallery.push(url); }, 1400, { multiple:true, done: async (ok, total) => {
+      await saveData(); render();
+      toast(ok + ' foto ditambahkan' + (ok < total ? ', ' + (total - ok) + ' gagal' : '') + '.');
+    } });
+    return;
+  }
+
   if ((n = el('[data-pick]'))){
     const path = n.dataset.pick;
     pickImage(async (dataUrl) => {
@@ -2754,6 +2825,21 @@ document.addEventListener('click', async (e) => {
             : small ? 'Tersimpan, tapi gambar kecil (' + info.w + 'px) dan bisa buram di HP. Pakai versi minimal 600px.'
             : 'Aset tersimpan.');
     });
+    return;
+  }
+
+  if ((n = el('[data-acreset]'))){
+    if (S.data.assetCfg) delete S.data.assetCfg[n.dataset.acreset];
+    await saveData(); render(); return;
+  }
+
+  if ((n = el('[data-pvgo]'))){
+    const f = $('#pv'); if (!f || !f.contentDocument) return;
+    const doc = f.contentDocument, id = n.dataset.pvgo;
+    if (id === 'cover'){ f.srcdoc = renderInvitation(S.data, null); return; }
+    const cover = doc.getElementById('cover'), btn = doc.getElementById('openBtn');
+    const go = () => { const t = doc.getElementById(id); if (t) t.scrollIntoView({ behavior:'smooth', block:'start' }); };
+    if (cover && !cover.classList.contains('open') && btn){ btn.click(); setTimeout(go, 1300); } else go();
     return;
   }
 
@@ -3023,6 +3109,24 @@ document.addEventListener('click', async (e) => {
     });
     inp.click(); return;
   }
+});
+
+/* Slider aset: perbarui pratinjau langsung tanpa memuat ulang, simpan setelah jeda */
+document.addEventListener('input', (e) => {
+  const t = e.target;
+  if (!t || !t.dataset || !t.dataset.acfg) return;
+  const [k, c] = t.dataset.acfg.split(':');
+  const sl = ASSET_SLOTS.find(x => x.k === k); if (!sl) return;
+  const v = Number(t.value);
+  S.data.assetCfg = S.data.assetCfg || {};
+  (S.data.assetCfg[k] = S.data.assetCfg[k] || {})[c] = v;
+  const lab = t.parentNode.querySelector('b'); if (lab) lab.textContent = v + ctlDef(sl, c).unit;
+  const f = $('#pv');
+  if (f && f.contentDocument && f.contentDocument.documentElement){
+    const vv = assetVar(sl, c, v);
+    f.contentDocument.documentElement.style.setProperty(vv[0], vv[1]);
+  }
+  clearTimeout(S._acT); S._acT = setTimeout(() => { saveData(); }, 700);
 });
 
 /* Simpan otomatis saat pindah kolom */
