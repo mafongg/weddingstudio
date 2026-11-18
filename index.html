@@ -283,7 +283,7 @@ tbody tr:hover{background:var(--surface-2)}
 /* ============================================================
    WEDDING STUDIO
    Satu file, dua mode:
-     index.html          -> panel admin (dikunci PIN)
+     index.html          -> panel admin (login admin)
      index.html?g=KODE   -> undangan untuk tamu tersebut
    ============================================================ */
 (() => {
@@ -300,6 +300,10 @@ const Store = (() => {
   const MEM = {};
   let mode = 'memory';
   let sb = null;
+  const snap = { guests:{}, wishes:{} };
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const stable = o => JSON.stringify(o, (k, v) => (v && typeof v === 'object' && !Array.isArray(v))
+    ? Object.keys(v).sort().reduce((a, x) => (a[x] = v[x], a), {}) : v);
 
   if (typeof window !== 'undefined' && window.supabase && window.supabase.createClient) {
     try {
@@ -321,8 +325,101 @@ const Store = (() => {
     }
   }
 
-  return {
-    mode,
+  const api = { mode, onError: null, url: SUPABASE_URL, key: SUPABASE_ANON_KEY };
+  const fail = (what, e) => {
+    const m = 'GAGAL menyimpan ' + what + (e && e.message ? ' (' + e.message + ')' : '') + '. Perubahan belum masuk database.';
+    if (api.onError) api.onError(m);
+    return false;
+  };
+
+  /* ---- pemetaan baris database <-> objek aplikasi ---- */
+  const gRow = (g) => {
+    const x = Object.assign({}, g);
+    const row = { id:String(x.id), code:String(x.code || ''), name:x.name || '',
+      pax:Math.max(1, parseInt(x.pax, 10) || 1),
+      status:['pending','yes','maybe','no'].indexOf(x.status) >= 0 ? x.status : 'pending',
+      checked_in:!!x.checkedIn, checked_in_at:x.checkedInAt || null };
+    ['id','code','name','pax','status','checkedIn','checkedInAt','rsvpAt'].forEach(k => { delete x[k]; });
+    row.extra = x;
+    return row;
+  };
+  const gObj = (r) => Object.assign({}, r.extra || {}, { id:r.id, code:r.code, name:r.name, pax:r.pax,
+    status:r.status, checkedIn:r.checked_in, checkedInAt:r.checked_in_at, rsvpAt:r.rsvp_at });
+  const wRow = (w) => {
+    if (!UUID.test(String(w.id || ''))) w.id = (crypto && crypto.randomUUID) ? crypto.randomUUID()
+      : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); });
+    const x = Object.assign({}, w);
+    ['id','guest','name','message','rsvpLabel','status','at'].forEach(k => { delete x[k]; });
+    return { id:w.id, guest_code:w.guest || null, name:String(w.name || ''), message:String(w.message || ''),
+      rsvp_label:w.rsvpLabel || '', status:w.status === 'hidden' ? 'hidden' : 'shown',
+      created_at:w.at || new Date().toISOString(), extra:x };
+  };
+  const wObj = (r) => Object.assign({}, r.extra || {}, { id:r.id, guest:r.guest_code, name:r.name, message:r.message,
+    rsvpLabel:r.rsvp_label, status:r.status, at:r.created_at });
+
+  async function fetchAll(table, cols, orderCol, asc) {
+    const out = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await sb.from(table).select(cols).order(orderCol, { ascending:asc }).range(from, from + 999);
+      if (error) throw error;
+      out.push.apply(out, data);
+      if (data.length < 1000) break;
+    }
+    return out;
+  }
+
+  async function syncRows(table, items, toRow, snapKey, what) {
+    const rows = items.map(toRow);
+    const cur = {}; rows.forEach(r => { cur[r.id] = stable(r); });
+    const old = snap[snapKey];
+    const changed = rows.filter(r => old[r.id] !== cur[r.id]);
+    const removed = Object.keys(old).filter(id => !(id in cur));
+    for (let i = 0; i < changed.length; i += 300) {
+      const { error } = await sb.from(table).upsert(changed.slice(i, i + 300), { onConflict:'id' });
+      if (error) throw error;
+    }
+    for (let i = 0; i < removed.length; i += 150) {
+      const { error } = await sb.from(table).delete().in('id', removed.slice(i, i + 150));
+      if (error) throw error;
+    }
+    snap[snapKey] = cur;
+    return true;
+  }
+
+  Object.assign(api, {
+    /* ---- endpoint publik (tamu): hanya fungsi RPC sempit, tanpa login ---- */
+    async rpc(name, args) {
+      const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/' + name, {
+        method:'POST', headers:{ apikey:SUPABASE_ANON_KEY, 'Content-Type':'application/json' },
+        body:JSON.stringify(args || {}) });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const t = await r.text();
+      return t ? JSON.parse(t) : null;
+    },
+    /* ---- login admin ---- */
+    auth: {
+      async isAdmin() { try { const { data, error } = await sb.rpc('is_wedding_admin'); return !error && data === true; } catch (e) { return false; } },
+      async restore() {
+        if (!sb) return false;
+        try { const { data } = await sb.auth.getSession(); if (!data || !data.session) return false; return await api.auth.isAdmin(); }
+        catch (e) { return false; }
+      },
+      async signIn(email, pw) {
+        try {
+          const { error } = await sb.auth.signInWithPassword({ email:email, password:pw });
+          if (error) return { ok:false, msg:'Email atau password salah.' };
+          if (!(await api.auth.isAdmin())) { await sb.auth.signOut(); return { ok:false, msg:'Akun ini belum punya akses admin undangan.' }; }
+          return { ok:true };
+        } catch (e) { return { ok:false, msg:'Tidak bisa terhubung. Periksa koneksi.' }; }
+      },
+      async signOut() { try { await sb.auth.signOut(); } catch (e) {} },
+      async email() { try { const { data } = await sb.auth.getUser(); return data && data.user ? data.user.email : ''; } catch (e) { return ''; } }
+    },
+    async checkIn(code) {
+      const { data, error } = await sb.rpc('check_in_guest', { p_code:code });
+      if (error) throw error;
+      return data;
+    },
     async upload(path, blob, contentType) {
       if (mode !== 'supabase') return null;
       try {
@@ -330,14 +427,34 @@ const Store = (() => {
         if (error) throw error;
         const { data } = sb.storage.from('wedding-assets').getPublicUrl(path);
         return data && data.publicUrl ? data.publicUrl + '?v=' + Date.now() : null;
-      } catch (e) { return null; }
+      } catch (e) { if (api.onError) api.onError('Foto gagal diunggah: ' + (e && e.message ? e.message : 'cek login/koneksi')); return null; }
     },
     async get(key) {
       try {
         if (mode === 'supabase') {
-          const { data, error } = await sb.from('wedding_kv').select('value').eq('key', key).maybeSingle();
-          if (error) throw error;
-          return data ? data.value : null;
+          if (key === 'wedding:data') {
+            const { data, error } = await sb.from('wedding_content').select('value').eq('key', 'data').maybeSingle();
+            if (error) throw error;
+            return data ? data.value : null;
+          }
+          if (key === 'wedding:guests') {
+            const rows = await fetchAll('wedding_guests', '*', 'created_at', true);
+            const list = rows.map(gObj);
+            snap.guests = {}; rows.forEach(r => { const o = gObj(r); snap.guests[r.id] = stable(gRow(o)); });
+            return list;
+          }
+          if (key === 'wedding:wishes') {
+            const rows = await fetchAll('wedding_wishes', '*', 'created_at', false);
+            snap.wishes = {}; const list = rows.map(wObj);
+            list.forEach(w => { const r = wRow(w); snap.wishes[r.id] = stable(r); });
+            return list;
+          }
+          if (key === 'wedding:opens') {
+            const { data, error } = await sb.from('wedding_opens').select('guest_code,at').order('at', { ascending:false }).limit(500);
+            if (error) throw error;
+            return data.map(o => ({ guest:o.guest_code ? { code:o.guest_code } : null, at:o.at }));
+          }
+          return null;
         }
         if (mode === 'bridge') {
           const r = await window.storage.get(key);
@@ -348,24 +465,40 @@ const Store = (() => {
           return v ? JSON.parse(v) : null;
         }
         return MEM[key] !== undefined ? MEM[key] : null;
-      } catch (e) { return null; }
+      } catch (e) { if (api.onError) api.onError('Gagal memuat data dari database.'); return null; }
     },
     async set(key, value) {
-      try {
-        if (mode === 'supabase') {
-          const { error } = await sb.from('wedding_kv').upsert({ key, value, updated_at: new Date().toISOString() });
-          if (error) throw error;
+      if (mode === 'supabase') {
+        try {
+          if (key === 'wedding:data') {
+            const v = JSON.parse(JSON.stringify(value)); if (v.meta) delete v.meta.pin;
+            const { error } = await sb.from('wedding_content').upsert({ key:'data', value:v, updated_at:new Date().toISOString() });
+            if (error) throw error;
+            return true;
+          }
+          if (key === 'wedding:guests') return await syncRows('wedding_guests', value, gRow, 'guests');
+          if (key === 'wedding:wishes') return await syncRows('wedding_wishes', value, wRow, 'wishes');
+          if (key === 'wedding:opens') {
+            if (Array.isArray(value) && !value.length) {
+              const { error } = await sb.from('wedding_opens').delete().gte('id', 0);
+              if (error) throw error;
+            }
+            return true;
+          }
           return true;
-        }
+        } catch (e) { return fail(key.replace('wedding:', ''), e); }
+      }
+      try {
         if (mode === 'bridge') { await window.storage.set(key, JSON.stringify(value)); return true; }
         if (mode === 'local')  { window.localStorage.setItem(key, JSON.stringify(value)); return true; }
         MEM[key] = value; return true;
       } catch (e) { MEM[key] = value; return false; }
     }
-  };
-  /* Tabel: wedding_kv (key text primary key, value jsonb,
-                        updated_at timestamptz default now())
-  ------------------------------------------------------------ */
+  });
+  return api;
+  /* Tabel: wedding_content, wedding_guests, wedding_wishes, wedding_opens, wedding_admins.
+     Tamu hanya lewat RPC (get_public_invitation, get_guest, list_wishes, submit_rsvp, log_open).
+     Admin lewat Supabase Auth + wedding_admins + RLS. */
 })();
 
 const K = { data:'wedding:data', guests:'wedding:guests', wishes:'wedding:wishes', opens:'wedding:opens' };
@@ -374,7 +507,7 @@ const K = { data:'wedding:data', guests:'wedding:guests', wishes:'wedding:wishes
    2. DATA AWAL
    ============================================================ */
 const seed = () => ({
-  meta: { theme:'ivory', cover:'fade', nav:'none', gallery:'grid', card:'plain', rsvp:'form', lang:'en', pin:'1234', title:'Kenneth & Kimberly', customTheme:null },
+  meta: { theme:'ivory', cover:'fade', nav:'none', gallery:'grid', card:'plain', rsvp:'form', lang:'en', title:'Kenneth & Kimberly', customTheme:null },
   og: { image:'', title:'', desc:'' },
   weddingISO: '2026-11-14T09:00:00+07:00',
   rsvpDeadline: '2026-11-01',
@@ -571,9 +704,18 @@ async function load(){
   S.data   = (await Store.get(K.data))   || seed();
   S.guests = (await Store.get(K.guests)) || [];
   S.wishes = (await Store.get(K.wishes)) || [];
-  S.opens  = (await Store.get(K.opens))  || [];
+  const op = (await Store.get(K.opens))  || [];
+  S.opens  = op.map(o => {
+    const gg = o.guest && o.guest.code ? S.guests.find(x => x.code === o.guest.code) : null;
+    return { guest: gg ? { id:gg.id, code:gg.code, name:gg.name } : (o.guest && o.guest.id ? o.guest : null), at:o.at };
+  });
+  normalizeData();
+}
+function normalizeData(){
   // isi bagian baru untuk data yang dibuat sebelum fitur ini ada
   const base = seed();
+  if (!S.data.meta) S.data.meta = base.meta;
+  delete S.data.meta.pin;
   ['opening','og'].forEach(k => { if (!S.data[k]) S.data[k] = base[k]; });
   ['hosts','rundown'].forEach(k => { if (!Array.isArray(S.data[k])) S.data[k] = base[k]; });
   if (!S.data.assets || typeof S.data.assets !== 'object') S.data.assets = {};
@@ -634,6 +776,7 @@ function resolveOrder(d){
 const isHiddenSec = (d, id) => !!(d.layout && (d.layout.hidden || []).indexOf(id) >= 0);
 const secDomId = (d, id) => id === 'couple' ? ((d.meta && d.meta.open === 'arch') ? 'couple2' : 'couple') : id;
 
+let RENDER_LIVE = false;
 function renderInvitation(d, guest){
   const th = (d.meta.theme === 'custom')
     ? deriveCustomPalette(Object.assign({}, THEMES.custom, d.meta.customTheme || {}))
@@ -1402,6 +1545,7 @@ sbCSS +
 '(function(){var $=function(s){return document.querySelector(s)};' +
 'var TARGET=new Date("' + d.weddingISO + '").getTime();' +
 'var GUEST=' + JSON.stringify(g ? { id:g.id, code:g.code, name:g.name } : null) + ';' +
+'var LIVE=' + (RENDER_LIVE ? 'true' : 'false') + ',SBU=' + JSON.stringify(Store.url) + ',SBK=' + JSON.stringify(Store.key) + ';' +
 'var RM=matchMedia("(prefers-reduced-motion: reduce)").matches;' +
 'var cover=$("#cover"),COVER="' + cover + '";' +
 'var ld=$("#load");' +
@@ -1415,11 +1559,8 @@ sbCSS +
   'cover.classList.add("open");document.body.classList.remove("lock");scrollTo(0,0);' +
   'setTimeout(function(){cover.setAttribute("hidden","")},1100);' +
   'var s=$("#song");if(s){s.play().catch(function(){})}' +
-  'var ev={type:"opened",guest:GUEST,at:new Date().toISOString()};' +
-  '/* TODO Supabase: sb.from("opens").insert(ev) */' +
-  'if(window.parent!==window){try{window.parent.postMessage(ev,"*")}catch(x){}}' +
-  'try{var K="wedding:opens";var L=JSON.parse(localStorage.getItem(K)||"[]");' +
-  'L.push(ev);localStorage.setItem(K,JSON.stringify(L.slice(-500)))}catch(x){}' +
+  'if(LIVE&&GUEST){try{fetch(SBU+"/rest/v1/rpc/log_open",{method:"POST",headers:{apikey:SBK,"Content-Type":"application/json"},' +
+  'body:JSON.stringify({p_code:GUEST.code}),keepalive:!0}).catch(function(){})}catch(x){}}' +
 '});' +
 'document.body.classList.add("lock");' +
 'var QB=$("#qrb");' +
@@ -1477,13 +1618,12 @@ sbCSS +
 'if(bad){return}' +
 'var payload={guest:GUEST,name:n,attend:a,pax:p,message:m,at:new Date().toISOString()};' +
 'if($("#rW"))payload.which=$("#rW").value;' +
-'/* TODO Supabase: sb.from("rsvp").insert(payload) */' +
-'if(window.parent!==window){try{window.parent.postMessage({type:"rsvp",payload:payload},"*")}catch(x){}}' +
+'var RFm=this;function ok(){' +
 'if(m){var el=document.createElement("article");el.className="wsh";' +
 'el.innerHTML=\'<div class="wsh__t"><span class="wsh__n"></span><span class="wsh__r"></span></div><p class="wsh__m"></p>\';' +
 'el.querySelector(".wsh__n").textContent=n;el.querySelector(".wsh__r").textContent=LBL[a];' +
 'el.querySelector(".wsh__m").textContent=m;var wl=$("#wList");if(wl)wl.insertBefore(el,wl.firstChild)}' +
-'this.reset();[].forEach.call(document.querySelectorAll(".rbtn"),function(x){x.classList.remove("on")});' +
+'RFm.reset();[].forEach.call(document.querySelectorAll(".rbtn"),function(x){x.classList.remove("on")});' +
 'if($("#rA"))$("#rA").value="";' +
 '$("#sent").textContent=a==="no"?"Thank you for letting us know. We will miss you.":"Thank you. Your reply has been received.";' +
 '$("#sent").classList.add("on");' +
@@ -1510,7 +1650,16 @@ sbCSS +
       'x.font="16px Arial, sans-serif";x.fillStyle="#666";x.fillText("Show this at the door",260,560);' +
       'var a2=document.createElement("a");a2.download="wedding-ticket-"+tcode+".png";a2.href=c.toDataURL("image/png");' +
       'document.body.appendChild(a2);a2.click();a2.remove()};qi.src=src;' +
-  '})}}});' +
+  '})}}' +
+'}' +
+'if(!LIVE){ok();return}' +
+'var sb2=RFm.querySelector("button[type=submit]");if(sb2)sb2.disabled=!0;' +
+'fetch(SBU+"/rest/v1/rpc/submit_rsvp",{method:"POST",headers:{apikey:SBK,"Content-Type":"application/json"},' +
+'body:JSON.stringify({p_code:GUEST?GUEST.code:null,p_name:n,p_attend:a,p_pax:parseInt(p,10)||1,p_message:m,p_which:payload.which||""})})' +
+'.then(function(r){if(!r.ok)throw 0;return 1})' +
+'.then(function(){if(sb2)sb2.disabled=!1;ok()},function(){if(sb2)sb2.disabled=!1;var se=$("#sent");' +
+'se.textContent="Sorry, your reply could not be sent. Please check your connection and try again.";se.classList.add("on")})' +
+'});' +
 '})();';
 
   const og = d.og || {};
@@ -1543,10 +1692,27 @@ sbCSS +
    7. MODE TAMU
    ============================================================ */
 async function bootGuest(gcode){
-  await load();
-  const guest = S.guests.find(x => x.code === gcode) || null;
+  let d = null, g = null, w = [];
+  try {
+    [d, g, w] = await Promise.all([ Store.rpc('get_public_invitation'), Store.rpc('get_guest', { p_code:gcode }), Store.rpc('list_wishes') ]);
+  } catch (e) {
+    document.body.innerHTML = '<div style="font:16px/1.6 Arial,sans-serif;text-align:center;padding:72px 24px;color:#333">' +
+      'Undangan belum bisa dimuat.<br>Periksa koneksi internet, lalu muat ulang halaman.<br><br>' +
+      '<button onclick="location.reload()" style="font:inherit;padding:10px 22px;cursor:pointer">Muat ulang</button></div>';
+    return;
+  }
+  if (!d){
+    document.body.innerHTML = '<div style="font:16px/1.6 Arial,sans-serif;text-align:center;padding:72px 24px;color:#333">Undangan belum tersedia.</div>';
+    return;
+  }
+  S.data = d;
+  normalizeData();
+  S.wishes = (w || []).map(x => ({ name:x.name, message:x.message, rsvpLabel:x.rsvp_label, status:'shown', at:x.created_at }));
+  RENDER_LIVE = true;
+  const html = renderInvitation(S.data, g || null);
+  RENDER_LIVE = false;
   document.open();
-  document.write(renderInvitation(S.data, guest));
+  document.write(html);
   document.close();
 }
 
@@ -1565,7 +1731,7 @@ function shell(inner){
     '<nav class="nav">' + NAV.map(n =>
       '<button data-go="' + n[0] + '" class="' + (S.view === n[0] ? 'on' : '') + '">' +
       icon(n[2]) + '<span>' + n[1] + '</span></button>').join('') + '</nav>' +
-    '<div class="side__foot">Penyimpanan: <b>' + Store.mode + '</b><br>' + (Store.mode === 'supabase' ? 'Data tersimpan di Supabase, nyatu di semua perangkat.' : 'Data tersimpan di perangkat ini saja.') + '</div>' +
+    '<div class="side__foot">Penyimpanan: <b>' + Store.mode + '</b><br>' + (Store.mode === 'supabase' ? 'Tersimpan di database, nyatu di semua perangkat.' : 'Hanya tersimpan di perangkat ini.') + (Store.mode === 'supabase' ? '<br><a href="#" data-logout style="color:inherit;text-decoration:underline">Keluar</a>' : '') + '</div>' +
     '</aside><main class="main">' + inner + '</main></div>';
 }
 
@@ -2534,36 +2700,50 @@ async function onScan(text){
   if (c === lastScan && now - lastScanAt < 2500) return; // hindari pindai ganda
   lastScan = c; lastScanAt = now;
 
-  const g = S.guests.find(x => x.code === c);
   const st = $('#scanState');
-  if (!g){
+  const unknown = () => {
     if (st) st.innerHTML = '<span style="color:var(--bad)"><b>Kode ' + esc(c) + ' tidak dikenal.</b></span>';
     toast('Kode tidak terdaftar.');
+  };
+  let g = S.guests.find(x => x.code === c);
+  let already = false, name = '', pax = 1;
+
+  if (Store.mode === 'supabase'){
+    /* satu langkah atomik di database: dua pemindai bersamaan tidak saling menimpa */
+    let r;
+    try { r = await Store.checkIn(c); }
+    catch (err){ if (st) st.innerHTML = '<span style="color:var(--bad)"><b>Gagal terhubung ke database. Coba lagi.</b></span>'; toast('Check-in gagal, coba lagi.'); lastScan = ''; return; }
+    if (!r || !r.found) return unknown();
+    already = !!r.already; name = r.name; pax = r.pax || 1;
+    if (!g){ const gs = await Store.get(K.guests); if (gs) S.guests = gs; g = S.guests.find(x => x.code === c); }
+    if (g){ g.checkedIn = true; g.checkedInAt = r.checked_in_at; }
+  } else {
+    if (!g) return unknown();
+    already = !!g.checkedIn; name = g.name; pax = g.pax || 1;
+    if (!already){ g.checkedIn = true; g.checkedInAt = new Date().toISOString(); await saveGuests(); }
+  }
+
+  if (already){
+    if (st) st.innerHTML = '<span style="color:var(--warn)"><b>' + esc(name) + '</b> sudah masuk sebelumnya.</span>';
+    toast(name + ' sudah check-in.');
     return;
   }
-  if (g.checkedIn){
-    if (st) st.innerHTML = '<span style="color:var(--warn)"><b>' + esc(g.name) + '</b> sudah masuk sebelumnya.</span>';
-    toast(g.name + ' sudah check-in.');
-    return;
-  }
-  g.checkedIn = true;
-  g.checkedInAt = new Date().toISOString();
-  logGuest(g, 'Check-in via QR/scan');
-  await saveGuests();
-  if (st) st.innerHTML = '<span style="color:var(--ok)"><b>' + esc(g.name) + '</b> masuk &middot; ' + (g.pax || 1) + ' orang</span>';
-  toast(g.name + ' masuk.');
+  if (g) logGuest(g, 'Check-in via QR/scan');
+  if (st) st.innerHTML = '<span style="color:var(--ok)"><b>' + esc(name) + '</b> masuk &middot; ' + pax + ' orang</span>';
+  toast(name + ' masuk.');
   const cnt = $('#ciCount'); if (cnt) cnt.textContent = S.guests.filter(x => x.checkedIn).length + ' / ' + S.guests.length;
-  const row = document.querySelector('[data-checkin="' + g.id + '"] td:last-child');
+  const row = g ? document.querySelector('[data-checkin="' + g.id + '"] td:last-child') : null;
   if (row) row.innerHTML = '<span class="tag tag--ok">Hadir</span>';
 }
 
 function viewSettings(){
   return '<div class="head"><div><h1>Pengaturan</h1>' +
-    '<p>Cadangan data dan koneksi. Data kini tersimpan di Supabase (Store.mode: <b>' + Store.mode + '</b>), otomatis nyatu lintas perangkat.</p></div></div>' +
+    '<p>Akun, cadangan data, dan koneksi.</p></div></div>' +
 
     '<div class="card"><div class="card__t">Umum</div>' +
       fld('Nama proyek','meta.title') +
-      fld('PIN masuk admin','meta.pin','text','Empat digit. Ganti sebelum link dibagikan.') + '</div>' +
+      (Store.mode === 'supabase' ? '<p style="margin:14px 0 0;color:var(--ink-2)">Masuk sebagai <b>' + esc(S.email || '') + '</b>. ' +
+        '<a href="#" data-logout>Keluar</a></p>' : '') + '</div>' +
 
     '<div class="card"><div class="card__t">Cadangan Data</div>' +
       '<p style="margin:0 0 14px;color:var(--ink-2)">Ekspor menyimpan konten, tamu, dan ucapan dalam satu berkas JSON. ' +
@@ -2577,9 +2757,11 @@ function viewSettings(){
       '<b>Tindakan ini tidak bisa dibatalkan</b> — ekspor dulu kalau ada yang mau disimpan.</p>' +
       '<button class="b b--bad" data-reset>' + icon('trash') + 'Reset ke Data Baru</button></div>' +
 
-    '<div class="card"><div class="card__t">Status Supabase</div>' +
-      '<p style="margin:0;color:var(--ink-2)">Terhubung ke project Supabase <b>wedding-studio</b>, tabel <code>wedding_kv</code>. ' +
-      'Semua RSVP, tamu, dan ucapan dari perangkat mana pun (HP tamu, laptop Anda) otomatis masuk ke tempat yang sama.</p></div>';
+    '<div class="card"><div class="card__t">Status Penyimpanan</div>' +
+      (Store.mode === 'supabase'
+        ? '<p style="margin:0;color:var(--ink-2)">Terhubung ke Supabase. Hanya akun admin yang bisa membaca atau mengubah data tamu, RSVP, dan ucapan. ' +
+          'Tamu hanya bisa membuka undangannya sendiri dan mengirim balasan. Balasan dari pratinjau di panel ini <b>tidak</b> disimpan.</p>'
+        : '<p style="margin:0;color:var(--bad)"><b>Tidak terhubung ke database.</b> Data hanya tersimpan di perangkat ini dan balasan tamu tidak akan masuk. Buka lewat alamat Vercel dengan internet aktif.</p>') + '</div>';
 }
 
 /* ============================================================
@@ -2589,18 +2771,23 @@ function render(){
   if (!S.unlocked){
     $('#root').innerHTML =
       '<div class="gate"><div class="gate__box"><h1>Wedding Studio</h1>' +
-      '<p>Masukkan PIN untuk membuka panel.</p>' +
-      '<input id="pin" type="password" inputmode="numeric" placeholder="PIN" style="text-align:center;letter-spacing:.5em;font-size:20px">' +
+      '<p>Masuk dengan akun admin.</p>' +
+      '<input id="lgE" type="email" autocomplete="username" placeholder="Email" style="margin-bottom:10px">' +
+      '<input id="lgP" type="password" autocomplete="current-password" placeholder="Password">' +
       '<button class="b" id="go" style="width:100%;margin-top:14px">Masuk</button>' +
-      '<p style="margin:16px 0 0;font-size:12px;color:var(--ink-3)">PIN awal: 1234 — ganti di Pengaturan.</p>' +
+      '<p id="lgM" style="margin:14px 0 0;font-size:13px;color:var(--bad);min-height:18px"></p>' +
       '</div></div>';
-    const tryPin = () => {
-      if ($('#pin').value.trim() === String(S.data.meta.pin)){ S.unlocked = true; render(); }
-      else toast('PIN salah.');
+    const tryLogin = async () => {
+      const em = $('#lgE').value.trim(), pw = $('#lgP').value;
+      if (!em || !pw){ $('#lgM').textContent = 'Isi email dan password.'; return; }
+      const btn = $('#go'); btn.disabled = true; $('#lgM').textContent = '';
+      const r = await Store.auth.signIn(em, pw);
+      if (!r.ok){ btn.disabled = false; $('#lgM').textContent = r.msg; return; }
+      await enterAdmin();
     };
-    $('#go').addEventListener('click', tryPin);
-    $('#pin').addEventListener('keydown', e => { if (e.key === 'Enter') tryPin(); });
-    $('#pin').focus();
+    $('#go').addEventListener('click', tryLogin);
+    $('#lgP').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+    $('#lgE').focus();
     return;
   }
 
@@ -2705,7 +2892,7 @@ function guestModalHome(g, link, msg){
     '</div>' +
     '<div class="grid g2">' +
       '<div class="f"><label>Nomor Meja</label><input id="mTable" value="' + esc(g.table || '') + '" placeholder="mis. 12"></div>' +
-      '<div class="f"><label>Kode PIN</label><input value="' + esc(g.code) + '" readonly></div>' +
+      '<div class="f"><label>Kode Tamu</label><input value="' + esc(g.code) + '" readonly></div>' +
     '</div>' +
     '<div class="f"><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0">' +
       '<input type="checkbox" id="mAttend" style="width:auto;min-height:auto"' + (g.checkedIn ? ' checked' : '') + '> Sudah hadir (check-in)</label></div>' +
@@ -3010,6 +3197,12 @@ document.addEventListener('click', async (e) => {
   const el = (s) => e.target.closest(s);
   let n;
 
+  if (el('[data-logout]')){
+    e.preventDefault();
+    await Store.auth.signOut();
+    S.unlocked = false; S.guests = []; S.wishes = []; S.opens = []; S.data = seed();
+    render(); return;
+  }
   if (el('[data-close]')) { stopScan(); return closeModal(); }
   if (el('[data-scan]')) return startScan();
   if (el('[data-stopscan]')) return stopScan();
@@ -3457,52 +3650,52 @@ document.addEventListener('change', async (e) => {
   }
 });
 
-/* Terima RSVP dari iframe pratinjau */
-addEventListener('message', async (e) => {
-  const m = e.data;
-  if (!m) return;
+/* Pratinjau di panel tidak menyimpan apa pun ke database (LIVE=false di pratinjau). */
 
-  if (m.type === 'opened'){
-    S.opens.push({ guest:m.guest, at:m.at });
-    if (S.opens.length > 500) S.opens = S.opens.slice(-500);
-    await saveOpens();
-    if (S.unlocked && S.view === 'opens') render();
-    return;
-  }
-
-  if (m.type !== 'rsvp') return;
-  const p = m.payload;
-  if (p.guest && p.guest.id){
-    const g = S.guests.find(x => x.id === p.guest.id);
-    if (g){ g.status = p.attend; g.pax = Number(p.pax) || 1; g.note = p.message || g.note;
-      if (p.which !== undefined) g.which = p.which; await saveGuests(); }
-  }
-  if (p.message){
-    S.wishes.unshift({ id:uid(), name:p.name, message:p.message,
-      rsvpLabel:({yes:'Accepts',maybe:'Hoping to',no:'Declines'})[p.attend] || '',
-      status:'shown', at:p.at });
-    await saveWishes();
-  }
-  if (S.unlocked) render();
-});
+/* Muat ulang data yang bisa berubah dari luar (RSVP, ucapan, kunjungan, check-in perangkat lain) */
+async function refreshLive(){
+  if (Store.mode !== 'supabase' || !S.unlocked || document.hidden) return;
+  if (['dash','stats','rsvp','wishes','opens'].indexOf(S.view) < 0) return;
+  if (document.querySelector('#modal.on')) return;
+  if (document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+  if (scanner) return;
+  await load();
+  render();
+}
+setInterval(refreshLive, 45000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshLive(); });
 
 /* ============================================================
    12. BOOT
    ============================================================ */
+async function enterAdmin(){
+  S.email = Store.mode === 'supabase' ? await Store.auth.email() : '';
+  await load();
+  S.unlocked = true;
+  render();
+}
+
 (async () => {
   const qs = new URLSearchParams(location.search);
   const gcode = qs.get('g');
   if (gcode) return bootGuest(gcode);
 
-  await load();
+  Store.onError = (m) => toast(m);
 
-  // QR dipindai kamera bawaan HP -> buka check-in untuk kode itu
+  // QR dipindai kamera bawaan HP -> buka check-in untuk kode itu (setelah login)
   const ci = qs.get('ci');
   if (ci){
     S.pendingCheckin = ci.trim().toUpperCase();
     S.view = 'checkin';
   }
-  render();
+
+  if (Store.mode === 'supabase'){
+    if (await Store.auth.restore()) return enterAdmin();
+    S.data = seed();
+    return render();   // tampilkan halaman login
+  }
+  // mode lokal (tanpa database): tidak ada login, data hanya di perangkat ini
+  await enterAdmin();
 })();
 
 })();
