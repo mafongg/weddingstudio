@@ -561,7 +561,13 @@ const FONTSETS = {
   lora:      { display:"'Lora',Georgia,serif", script:"'Great Vibes',cursive", util:"'Jost',sans-serif",
     q:'Lora:ital,wght@0,400;0,500;1,400&family=Great+Vibes&family=Jost:wght@300;400;500' },
   cinzel:    { display:"'Cinzel',Georgia,serif", script:"'Cormorant Garamond',serif", util:"'Jost',sans-serif",
-    q:'Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@300;400;500' }
+    q:'Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@300;400;500' },
+  bodoni:    { display:"'Bodoni Moda',Georgia,serif", script:"'Allura',cursive", util:"'Montserrat',sans-serif",
+    q:'Bodoni+Moda:ital,wght@0,400;0,500;1,400&family=Allura&family=Montserrat:wght@300;400;500' },
+  italiana:  { display:"'Italiana',Georgia,serif", script:"'Great Vibes',cursive", util:"'Jost',sans-serif",
+    q:'Italiana&family=Great+Vibes&family=Jost:wght@300;400;500' },
+  dmserif:   { display:"'DM Serif Display',Georgia,serif", script:"'Dancing Script',cursive", util:"'DM Sans',sans-serif",
+    q:'DM+Serif+Display:ital@0;1&family=Dancing+Script:wght@500&family=DM+Sans:wght@300;400;500' }
 };
 
 const FONTLABEL = {
@@ -569,7 +575,10 @@ const FONTLABEL = {
   playfair:  'Playfair Display + Parisienne',
   marcellus: 'Marcellus + Josefin Sans (tanpa skrip)',
   lora:      'Lora + Great Vibes',
-  cinzel:    'Cinzel + Cormorant Garamond'
+  cinzel:    'Cinzel + Cormorant Garamond',
+  bodoni:    'Bodoni Moda + Allura (klasik tegas)',
+  italiana:  'Italiana + Great Vibes (ramping, mewah)',
+  dmserif:   'DM Serif Display + Dancing Script (hangat)'
 };
 
 const THEMES = {
@@ -781,7 +790,7 @@ function renderInvitation(d, guest){
   const th = (d.meta.theme === 'custom')
     ? deriveCustomPalette(Object.assign({}, THEMES.custom, d.meta.customTheme || {}))
     : (THEMES[d.meta.theme] || THEMES.ivory);
-  const fs = FONTSETS[th.font] || FONTSETS.cormorant;
+  const fs = FONTSETS[d.meta.font] || FONTSETS[th.font] || FONTSETS.cormorant;
   const t = { paper:th.paper, paper2:th.paper2, ink:th.ink, soft:th.soft, faint:th.faint,
               accent:th.accent, rule:th.rule,
               display:fs.display, script:fs.script, util:fs.util };
@@ -812,6 +821,8 @@ function renderInvitation(d, guest){
     (A.cornerTL ? '<img class="crn tl" src="' + esc(A.cornerTL) + '" alt="">' : '') +
     (A.cornerBR ? '<img class="crn br" src="' + esc(A.cornerBR) + '" alt="">' : '');
   const g = guest || null;
+  const paxMax = Math.max(1, Math.min(2, (g && parseInt(g.pax,10)) || 2));
+  const paxOpts = paxMax >= 2 ? '<option>1</option><option>2</option>' : '<option>1</option>';
   const guestName = g ? g.name : 'Our honoured guest';
 
   const showBuildings = (d.meta.theme === 'burgundy');
@@ -1445,7 +1456,7 @@ sbCSS +
       '<input type="hidden" id="rW">' : '') +
     '<p class="rsvpq">Number of guests</p>' +
     '<div style="text-align:center"><select id="rP" style="max-width:120px;display:inline-block">' +
-    '<option>1</option><option>2</option><option>3</option><option>4</option></select></div>' +
+    paxOpts + '</select></div>' +
     '<div class="f" style="margin-top:26px"><label for="rM">A note for the couple</label><textarea id="rM" placeholder="Optional"></textarea></div>' +
     '<div style="text-align:center"><button class="btn" type="submit">Submit</button></div>'
   :
@@ -1455,7 +1466,7 @@ sbCSS +
     '<option value="maybe">Hoping to make it</option><option value="no">Regretfully declines</option>' +
     '</select><p class="bad">Choose your attendance.</p></div>' +
     '<div class="f"><label for="rP">Number of guests</label><select id="rP">' +
-    '<option>1</option><option>2</option><option>3</option><option>4</option></select></div>' +
+    paxOpts + '</select></div>' +
     '<div class="f"><label for="rM">A note for the couple</label><textarea id="rM" placeholder="Optional"></textarea></div>' +
     '<button class="btn" type="submit">Send Reply</button>'
   ) +
@@ -2183,6 +2194,12 @@ function viewTheme(){
     '<div class="card"><div class="card__t">Pilih Tampilan</div><div class="themes">' + cards + '</div></div>' +
 
     customEditor +
+
+    '<div class="card"><div class="card__t">Font</div>' +
+    '<div class="f"><label>Pasangan font undangan</label><select data-path="meta.font">' +
+      '<option value=""' + (!S.data.meta.font ? ' selected' : '') + '>Ikuti template (' + esc(FONTLABEL[(S.data.meta.theme === 'custom' ? ct.font : THEMES[S.data.meta.theme].font)] || '') + ')</option>' +
+      Object.keys(FONTSETS).map(k => '<option value="' + k + '"' + (S.data.meta.font === k ? ' selected' : '') + '>' + esc(FONTLABEL[k] || k) + '</option>').join('') +
+    '</select></div><p class="hint">Mengganti font tanpa mengubah warna atau template. Pratinjau di kanan langsung berubah.</p></div>' +
 
     '<div class="card"><div class="card__t">Animasi Pembuka</div>' +
     '<div class="themes">' + Object.keys(COVERS).map(k =>
