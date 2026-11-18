@@ -2144,7 +2144,12 @@ function viewContent(){
     '<div class="card"><div class="card__t">Lain-lain</div>' +
       fld('Dress code / catatan','dress','area') +
       fld('Kalimat penutup','closing','area') +
-      fld('URL musik latar (mp3)','music','url','Kosongkan bila tidak pakai musik.') + '</div>';
+      '<div class="f"><label>Musik latar</label>' +
+        '<div class="row"><button class="b b--line" data-music-upload>' + icon('plus') + (S.data.music ? 'Ganti Musik (MP3)' : 'Unggah Musik (MP3)') + '</button>' +
+        (S.data.music ? '<button class="b b--line" data-music-clear>' + icon('trash') + 'Hapus Musik</button>' : '') + '</div>' +
+        (S.data.music ? '<audio controls preload="none" src="' + esc(S.data.music) + '" style="width:100%;margin-top:12px"></audio>' : '') +
+        '<p class="hint" style="margin:8px 0 0;color:var(--ink-3);font-size:12px">Maksimal 8 MB. Pakai lagu bebas hak cipta atau yang kamu punya lisensinya. Musik mulai berputar saat tamu menekan tombol buka undangan.</p></div>' +
+      fld('Atau tempel link MP3 sendiri','music','url','Kosongkan bila tidak pakai musik.') + '</div>';
 }
 
 function viewTheme(){
@@ -3202,6 +3207,23 @@ document.addEventListener('click', async (e) => {
     await Store.auth.signOut();
     S.unlocked = false; S.guests = []; S.wishes = []; S.opens = []; S.data = seed();
     render(); return;
+  }
+  if (el('[data-music-clear]')){ S.data.music = ''; await saveData(); render(); toast('Musik dihapus.'); return; }
+  if (el('[data-music-upload]')){
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'audio/mpeg,audio/mp4,audio/x-m4a,audio/ogg,audio/wav,.mp3,.m4a';
+    inp.addEventListener('change', async () => {
+      const f = inp.files && inp.files[0]; if (!f) return;
+      if (f.size > 8 * 1024 * 1024){ toast('Berkas terlalu besar (maks 8 MB). Potong atau kecilkan dulu.'); return; }
+      if (Store.mode !== 'supabase'){ toast('Unggah musik butuh koneksi ke database.'); return; }
+      const ext = (f.name.split('.').pop() || 'mp3').toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp3';
+      const type = f.type || (ext === 'm4a' ? 'audio/mp4' : 'audio/mpeg');
+      toast('Mengunggah musik...');
+      const url = await Store.upload('music/' + Date.now().toString(36) + '.' + ext, f, type);
+      if (!url) return;
+      S.data.music = url; await saveData(); render(); toast('Musik tersimpan.');
+    });
+    inp.click(); return;
   }
   if (el('[data-close]')) { stopScan(); return closeModal(); }
   if (el('[data-scan]')) return startScan();
